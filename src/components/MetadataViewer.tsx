@@ -2,7 +2,6 @@ import React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Image as ImageIcon,
-  MapPin,
   Calendar,
   AlertCircle,
   Monitor,
@@ -14,9 +13,6 @@ import {
   User,
   Globe,
   Type,
-  Navigation,
-  Mountain,
-  Code,
 } from 'lucide-react'
 import { getTagValue, getHeadline, type GPSData } from '../utils/metadata'
 import {
@@ -27,37 +23,22 @@ import {
   getEditInfo,
   getDescriptionInfo,
 } from '../utils/metadataHelpers'
-import { itemVariants, containerVariants, rawViewVariants } from '../utils/animations'
-import { DataGridItem } from './DataGridItem'
+import { itemVariants, containerVariants } from '../utils/animations'
 import { MetadataSection } from './MetadataSection'
 import { MetadataGrid } from './MetadataGrid'
 import { StatCard } from './StatCard'
+import { GPSMetadataSection } from './GPSMetadataSection'
+import { RawMetadataView } from './RawMetadataView'
 import { useStore } from '../store'
 
 interface MetadataViewerProps {
   gps: GPSData | null
 }
 
-const downloadJSON = (data: unknown) => {
-  try {
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'exif-data.json'
-    a.click()
-    URL.revokeObjectURL(url)
-  } catch (e) {
-    console.error(e)
-    alert('Failed to create JSON download')
-  }
-}
-
 export const MetadataViewer: React.FC<MetadataViewerProps> = ({ gps }) => {
   const { metadata, viewMode, setViewMode, file, loading, error, isDetailView } = useStore()
 
   if (!metadata && !loading && !error) return null
-
 
   const headline = getHeadline(metadata, file)
   const { camera, lens, subtitle } = getCameraInfo(metadata)
@@ -260,80 +241,12 @@ export const MetadataViewer: React.FC<MetadataViewerProps> = ({ gps }) => {
                     />
                   </div>
 
-                  {/* GPS Section */}
-                  {gps ? (
-                    <motion.div variants={itemVariants} className="space-y-3">
-                      <div className="flex justify-between items-end">
-                        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                          Location
-                        </h3>
-                        <a
-                          href={`https://www.google.com/maps/search/?api=1&query=${gps.lat},${gps.lng}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-xs bg-teal-600 hover:bg-teal-500 text-white px-3 py-1 rounded-full transition-colors flex items-center gap-1"
-                        >
-                          <MapPin size={12} /> Open Maps
-                        </a>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <DataGridItem
-                          label="Latitude"
-                          value={`${gps.lat.toFixed(6)}° ${gps.latRef}`}
-                          icon={<Navigation size={18} />}
-                        />
-                        <DataGridItem
-                          label="Longitude"
-                          value={`${gps.lng.toFixed(6)}° ${gps.longRef}`}
-                          icon={<Navigation size={18} className="rotate-90" />}
-                        />
-                        {!!metadata?.GPSAltitude && (
-                          <DataGridItem
-                            label="Altitude"
-                            value={`${Math.round(Number(getTagValue(metadata.GPSAltitude)) || 0)}m`}
-                            icon={<Mountain size={18} />}
-                          />
-                        )}
-                      </div>
-                    </motion.div>
-                  ) : null}
+                  <GPSMetadataSection gps={gps} metadata={metadata} />
                 </motion.div>
               )}
 
               {!loading && !error && !!metadata && viewMode === 'raw' && (
-                <motion.div
-                  key="raw"
-                  variants={rawViewVariants}
-                  initial="initial"
-                  animate="animate"
-                  exit="exit"
-                  transition={{ duration: 0.2 }}
-                  className="bg-slate-900 rounded-xl border border-slate-800 p-4 overflow-hidden"
-                >
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="font-semibold text-slate-200 flex items-center gap-2">
-                      <Code size={16} className="text-teal-400" />
-                      Raw JSON Output
-                    </h3>
-                    <button
-                      onClick={() => downloadJSON(metadata)}
-                      className="text-xs text-teal-400 hover:text-teal-300 font-medium"
-                    >
-                      Download .json
-                    </button>
-                  </div>
-                  <pre className="font-mono text-xs text-slate-400 bg-black/50 p-4 rounded-lg overflow-x-auto max-h-[600px] overflow-y-auto custom-scrollbar">
-                    {(() => {
-                      try {
-                        const json = JSON.stringify(metadata, null, 2)
-                        return json === '{}' ? 'No metadata found (empty object)' : json
-                      } catch (e: unknown) {
-                        const message = e instanceof Error ? e.message : String(e)
-                        return `Error displaying JSON: ${message}`
-                      }
-                    })()}
-                  </pre>
-                </motion.div>
+                <RawMetadataView metadata={metadata} />
               )}
             </AnimatePresence>
           </motion.div>
