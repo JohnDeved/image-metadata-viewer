@@ -85,10 +85,10 @@ export const MetadataViewer: React.FC<MetadataViewerProps> = ({ metadata, gps, v
             exit={{ opacity: 0 }}
           >
             <motion.div className='flex items-center justify-between mb-6 pt-1'>
-              <h2 className='text-2xl font-bold text-white flex items-center gap-3'><div className="p-1.5 bg-indigo-500/10 rounded-lg border border-indigo-500/20"><ImageIcon size={20} className='text-indigo-400' /></div>Image Data</h2>
+              <h2 className='text-2xl font-bold text-white flex items-center gap-3'><div className="p-1.5 bg-teal-500/10 rounded-lg border border-teal-500/20"><ImageIcon size={20} className='text-teal-400' /></div>Image Data</h2>
               <div className='flex bg-slate-900 p-1 rounded-lg border border-slate-800'>
                 {['formatted', 'raw'].map(mode => (
-                  <button key={mode} onClick={() => setViewMode(mode as any)} className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${viewMode === mode ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}>{mode.charAt(0).toUpperCase() + mode.slice(1)}</button>
+                  <button key={mode} onClick={() => setViewMode(mode as any)} className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${viewMode === mode ? 'bg-teal-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}>{mode.charAt(0).toUpperCase() + mode.slice(1)}</button>
                 ))}
               </div>
             </motion.div>
@@ -235,7 +235,7 @@ export const MetadataViewer: React.FC<MetadataViewerProps> = ({ metadata, gps, v
                     <motion.div variants={itemVariants} className="space-y-3">
                       <div className="flex justify-between items-end">
                         <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Location</h3>
-                        <a href={`https://www.google.com/maps/search/?api=1&query=${gps.lat},${gps.lng}`} target='_blank' rel='noreferrer' className='text-xs bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1 rounded-full transition-colors flex items-center gap-1'>
+                        <a href={`https://www.google.com/maps/search/?api=1&query=${gps.lat},${gps.lng}`} target='_blank' rel='noreferrer' className='text-xs bg-teal-600 hover:bg-teal-500 text-white px-3 py-1 rounded-full transition-colors flex items-center gap-1'>
                           <MapPin size={12} /> Open Maps
                         </a>
                       </div>
@@ -261,7 +261,7 @@ export const MetadataViewer: React.FC<MetadataViewerProps> = ({ metadata, gps, v
                   className='bg-slate-900 rounded-xl border border-slate-800 p-4 overflow-hidden'
                 >
                   <div className='flex justify-between items-center mb-4'>
-                    <h3 className='font-semibold text-slate-200 flex items-center gap-2'><Code size={16} className='text-indigo-400' />Raw JSON Output</h3>
+                    <h3 className='font-semibold text-slate-200 flex items-center gap-2'><Code size={16} className='text-teal-400' />Raw JSON Output</h3>
                     <button onClick={() => {
                       try {
                         const url = URL.createObjectURL(new Blob([JSON.stringify(metadata, null, 2)], { type: 'application/json' }))
@@ -271,7 +271,7 @@ export const MetadataViewer: React.FC<MetadataViewerProps> = ({ metadata, gps, v
                         console.error(e)
                         alert('Failed to create JSON download')
                       }
-                    }} className='text-xs text-indigo-400 hover:text-indigo-300 font-medium'>Download .json</button>
+                    }} className='text-xs text-teal-400 hover:text-teal-300 font-medium'>Download .json</button>
                   </div>
                   <pre className='font-mono text-xs text-slate-400 bg-black/50 p-4 rounded-lg overflow-x-auto max-h-[600px] overflow-y-auto custom-scrollbar'>
                     {(() => {

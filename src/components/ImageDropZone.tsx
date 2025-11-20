@@ -25,7 +25,7 @@ export const ImageDropZone: React.FC<ImageDropZoneProps> = ({ file, previewUrl, 
       transition={{ type: 'tween', ease: [0.25, 0.1, 0.25, 1], duration: 0.6 }}
       className={`relative z-20 flex-shrink-0 ${isDetailView ? 'w-full lg:w-[40%]' : 'w-full'}`}
     >
-      <div onDragOver={(e) => { e.preventDefault(); e.stopPropagation() }} onDrop={onDrop} className={`relative group rounded-2xl overflow-hidden bg-black shadow-2xl border ${isDetailView ? 'border-slate-800' : 'border-slate-700 hover:border-indigo-500/50 bg-slate-900/30 aspect-[4/3]'}`}>
+      <div onDragOver={(e) => { e.preventDefault(); e.stopPropagation() }} onDrop={onDrop} className={`relative group rounded-2xl overflow-hidden bg-black shadow-2xl border ${isDetailView ? 'border-slate-800' : 'border-slate-700 hover:border-teal-500/50 bg-slate-900/30 aspect-[4/3]'}`}>
         {!file && <input type='file' onChange={onFileSelect} className='absolute inset-0 w-full h-full opacity-0 cursor-pointer z-30' accept='image/*' />}
         <div className={`absolute inset-0 flex flex-col items-center justify-center text-slate-400 transition-all duration-500 ${previewUrl ? 'opacity-0 scale-90' : 'opacity-100 scale-100'}`}>
           <div className='p-4 bg-slate-800 rounded-full mb-4 shadow-xl group-hover:scale-110 transition-transform duration-300'><Upload size={48} strokeWidth={1.5} /></div>

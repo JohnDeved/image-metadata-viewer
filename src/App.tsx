@@ -41,7 +41,7 @@ export default function App(): React.JSX.Element {
   const clearData = () => { updateState({ isDetailView: false }); setTimeout(() => { if (state.previewUrl) URL.revokeObjectURL(state.previewUrl); updateState({ file: null, previewUrl: null, metadata: null, error: null, imageLoaded: false }) }, 700) }
 
   return (
-    <div className='min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-indigo-500/30 overflow-x-hidden'>
+    <div className='min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-teal-500/30 overflow-x-hidden'>
       <Header onLoadTestImage={loadTestImage} />
       <main className={`mx-auto px-4 py-8 transition-all duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] ${state.isDetailView ? 'max-w-7xl' : 'max-w-2xl'}`}>
         <div className={`transform transition-transform duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] ${state.isDetailView ? 'translate-y-0' : 'translate-y-[15vh]'}`}>
