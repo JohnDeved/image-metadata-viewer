@@ -8,7 +8,7 @@ interface AppState {
   metadata: ExifMetadata | null
   loading: boolean
   error: string | null
-  viewMode: 'formatted' | 'raw'
+  viewMode: 'formatted' | 'raw' | 'ai'
   isDetailView: boolean
   imageLoaded: boolean
 }
@@ -19,7 +19,7 @@ interface AppActions {
   setMetadata: (metadata: ExifMetadata | null) => void
   setLoading: (loading: boolean) => void
   setError: (error: string | null) => void
-  setViewMode: (mode: 'formatted' | 'raw') => void
+  setViewMode: (mode: 'formatted' | 'raw' | 'ai') => void
   setIsDetailView: (isDetailView: boolean) => void
   setImageLoaded: (loaded: boolean) => void
   resetState: () => void
@@ -42,14 +42,14 @@ const initialState: AppState = {
 export const useStore = create<Store>((set, get) => ({
   ...initialState,
 
-  setFile: (file) => set({ file }),
-  setPreviewUrl: (url) => set({ previewUrl: url }),
-  setMetadata: (metadata) => set({ metadata }),
-  setLoading: (loading) => set({ loading }),
-  setError: (error) => set({ error }),
-  setViewMode: (mode) => set({ viewMode: mode }),
-  setIsDetailView: (isDetailView) => set({ isDetailView }),
-  setImageLoaded: (loaded) => set({ imageLoaded: loaded }),
+  setFile: file => set({ file }),
+  setPreviewUrl: url => set({ previewUrl: url }),
+  setMetadata: metadata => set({ metadata }),
+  setLoading: loading => set({ loading }),
+  setError: error => set({ error }),
+  setViewMode: mode => set({ viewMode: mode }),
+  setIsDetailView: isDetailView => set({ isDetailView }),
+  setImageLoaded: loaded => set({ imageLoaded: loaded }),
 
   resetState: () => {
     const { previewUrl } = get()
@@ -73,10 +73,15 @@ export const useStore = create<Store>((set, get) => ({
 
     try {
       const tags = await ExifReader.load(fileToProcess)
+
+      // Check for AI metadata to determine default view
+      const hasAIData = tags && (tags.parameters || tags.prompt || tags.workflow)
+
       set({
         loading: false,
         metadata: tags,
         error: !tags || Object.keys(tags).length === 0 ? 'No EXIF metadata found.' : null,
+        viewMode: hasAIData ? 'ai' : 'formatted',
       })
     } catch (err: unknown) {
       set({

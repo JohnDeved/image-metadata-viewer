@@ -12,6 +12,12 @@ import {
   Crosshair,
   Zap,
   Sun,
+  Palette,
+  Camera,
+  Aperture,
+  Focus,
+  Contrast as ContrastIcon,
+  Sparkle,
 } from 'lucide-react'
 import {
   getTagValue,
@@ -148,6 +154,21 @@ export const FormattedMetadataView: React.FC<FormattedMetadataViewProps> = ({ me
 
       {/* Additional Data Sections */}
       <div className="space-y-4">
+        {/* Image Properties (Grid) */}
+        <MetadataGrid
+          title="Image Properties"
+          variants={itemVariants}
+          items={[
+            { l: 'Image Width', v: metadata?.['Image Width'], i: <ImageIcon size={18} /> },
+            { l: 'Image Height', v: metadata?.['Image Height'], i: <ImageIcon size={18} /> },
+            { l: 'Bit Depth', v: metadata?.['Bit Depth'], i: <Palette size={18} /> },
+            { l: 'Color Type', v: metadata?.['Color Type'], i: <Palette size={18} /> },
+            { l: 'Compression', v: metadata?.Compression, i: <Sliders size={18} /> },
+            { l: 'Filter', v: metadata?.Filter, i: <Focus size={18} /> },
+            { l: 'Interlace', v: metadata?.Interlace, i: <Sliders size={18} /> },
+          ]}
+        />
+
         {/* Detailed Capture Settings (Grid) */}
         <MetadataGrid
           title="Capture Settings"
@@ -184,6 +205,48 @@ export const FormattedMetadataView: React.FC<FormattedMetadataViewProps> = ({ me
                   : null,
               i: <Type size={18} />,
             },
+          ]}
+        />
+
+        {/* Image Quality & Processing (Grid) */}
+        <MetadataGrid
+          title="Image Quality & Processing"
+          variants={itemVariants}
+          items={[
+            { l: 'Color Space', v: metadata?.ColorSpace, i: <Palette size={18} /> },
+            { l: 'Contrast', v: metadata?.Contrast, i: <ContrastIcon size={18} /> },
+            { l: 'Saturation', v: metadata?.Saturation, i: <Sparkle size={18} /> },
+            { l: 'Sharpness', v: metadata?.Sharpness, i: <Focus size={18} /> },
+            { l: 'Scene Type', v: metadata?.SceneCaptureType, i: <Camera size={18} /> },
+            { l: 'Custom Rendered', v: metadata?.CustomRendered, i: <Sliders size={18} /> },
+          ]}
+        />
+
+        {/* Camera & Lens Details (Grid) */}
+        <MetadataGrid
+          title="Camera & Lens Details"
+          variants={itemVariants}
+          items={[
+            { l: 'Camera Serial', v: metadata?.SerialNumber || metadata?.InternalSerialNumber, i: <Camera size={18} /> },
+            { l: 'Lens Serial', v: metadata?.LensSerialNumber, i: <Aperture size={18} /> },
+            { l: '35mm Focal Length', v: metadata?.FocalLengthIn35mmFormat, i: <Focus size={18} /> },
+            { l: 'Sensing Method', v: metadata?.SensingMethod, i: <Crosshair size={18} /> },
+            { l: 'Owner Name', v: metadata?.OwnerName, i: <User size={18} /> },
+            { l: 'Lens Make', v: metadata?.LensMake, i: <Type size={18} /> },
+          ]}
+        />
+
+        {/* Advanced Exposure Settings (Grid) */}
+        <MetadataGrid
+          title="Advanced Exposure"
+          variants={itemVariants}
+          items={[
+            { l: 'Exposure Mode', v: metadata?.ExposureMode, i: <Sliders size={18} /> },
+            { l: 'Exposure Bias', v: metadata?.ExposureBiasValue, i: <Sun size={18} /> },
+            { l: 'Max Aperture', v: metadata?.MaxApertureValue, i: <Aperture size={18} /> },
+            { l: 'Subject Distance', v: metadata?.SubjectDistance, i: <Focus size={18} /> },
+            { l: 'Digital Zoom', v: metadata?.DigitalZoomRatio, i: <ImageIcon size={18} /> },
+            { l: 'Gain Control', v: metadata?.GainControl, i: <Zap size={18} /> },
           ]}
         />
       </div>

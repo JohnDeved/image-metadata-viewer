@@ -1,10 +1,13 @@
 import React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Image as ImageIcon, AlertCircle } from 'lucide-react'
-import { type GPSData } from '../utils/metadata'
+import { Image as ImageIcon, AlertCircle, Sparkles } from 'lucide-react'
+import { type GPSData, getTagValue } from '../utils/metadata'
+import { parseAIParameters } from '../utils/aiMetadata'
 import { RawMetadataView } from './RawMetadataView'
 import { FormattedMetadataView } from './FormattedMetadataView'
+import { AIMetadataSection } from './AIMetadataSection'
 import { useStore } from '../store'
+import { itemVariants, containerVariants } from '../utils/animations'
 
 interface MetadataViewerProps {
   gps: GPSData | null
@@ -14,6 +17,13 @@ export const MetadataViewer: React.FC<MetadataViewerProps> = ({ gps }) => {
   const { metadata, viewMode, setViewMode, loading, error, isDetailView } = useStore()
 
   if (!metadata && !loading && !error) return null
+
+  // Check for AI Generation Data
+  const aiParameters =
+    getTagValue(metadata?.parameters) ||
+    getTagValue(metadata?.prompt) ||
+    getTagValue(metadata?.workflow)
+  const aiData = aiParameters ? parseAIParameters(aiParameters) : null
 
   return (
     <AnimatePresence mode="wait">
@@ -34,12 +44,48 @@ export const MetadataViewer: React.FC<MetadataViewerProps> = ({ gps }) => {
           >
             <motion.div className="flex items-center justify-between mb-6 pt-1">
               <h2 className="text-2xl font-bold text-white flex items-center gap-3">
-                <div className="p-1.5 bg-teal-500/10 rounded-lg border border-teal-500/20">
-                  <ImageIcon size={20} className="text-teal-400" />
-                </div>
-                Image Data
+                <AnimatePresence mode="wait">
+                  {viewMode === 'ai' ? (
+                    <motion.div
+                      key="ai-title"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.2 }}
+                      className="flex items-center gap-3"
+                    >
+                      <div className="p-1.5 bg-purple-500/10 rounded-lg border border-purple-500/20">
+                        <Sparkles size={20} className="text-purple-400" />
+                      </div>
+                      AI Generation Data
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="image-title"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.2 }}
+                      className="flex items-center gap-3"
+                    >
+                      <div className="p-1.5 bg-teal-500/10 rounded-lg border border-teal-500/20">
+                        <ImageIcon size={20} className="text-teal-400" />
+                      </div>
+                      Image Data
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </h2>
               <div className="flex bg-slate-900 p-1 rounded-lg border border-slate-800">
+                {aiData && (
+                  <button
+                    key="ai"
+                    onClick={() => setViewMode('ai')}
+                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${viewMode === 'ai' ? 'bg-teal-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
+                  >
+                    AI Data
+                  </button>
+                )}
                 {['formatted', 'raw'].map(mode => (
                   <button
                     key={mode}
@@ -74,6 +120,18 @@ export const MetadataViewer: React.FC<MetadataViewerProps> = ({ gps }) => {
 
               {!loading && !error && !!metadata && viewMode === 'raw' && (
                 <RawMetadataView key="raw" metadata={metadata} />
+              )}
+
+              {!loading && !error && !!metadata && viewMode === 'ai' && aiData && (
+                <motion.div
+                  key="ai"
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                >
+                  <AIMetadataSection aiData={aiData} variants={itemVariants} />
+                </motion.div>
               )}
             </AnimatePresence>
           </motion.div>
