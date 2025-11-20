@@ -91,7 +91,7 @@ export const getGPSData = (metadata: ExifMetadata | null): GPSData | null => {
   try {
     const latTag = metadata.GPSLatitude
     const lngTag = metadata.GPSLongitude
-    
+
     // Extract GPS references
     const latRef = extractRefValue(metadata.GPSLatitudeRef, 'N')
     const longRef = extractRefValue(metadata.GPSLongitudeRef, 'E')
@@ -115,4 +115,10 @@ export const getGPSData = (metadata: ExifMetadata | null): GPSData | null => {
   } catch {
     return null
   }
+}
+
+export const getHeadline = (metadata: ExifMetadata | null, file: File | null): string => {
+  if (!metadata && !file) return 'Unknown Image'
+  const headline = metadata ? getTagValue(metadata.Headline) : null
+  return headline || file?.name || 'Unknown Image'
 }

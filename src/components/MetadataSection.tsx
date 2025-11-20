@@ -18,7 +18,7 @@ export const MetadataSection: React.FC<MetadataSectionProps> = ({
 }) => (
   <motion.div
     variants={variants}
-    className={`bg-slate-900/40 rounded-xl border border-slate-800/60 p-5 space-y-4 hover:border-slate-700 transition-colors ${className}`}
+    className={`bg-slate-900/40 rounded-xl border border-slate-800/60 p-5 space-y-4 hover:bg-slate-800/60 hover:border-teal-500/30 transition-all duration-300 backdrop-blur-sm ${className}`}
   >
     <h3 className="text-xs font-bold text-teal-500/70 uppercase tracking-widest flex items-center gap-2">
       {React.cloneElement(icon as React.ReactElement<{ size: number }>, { size: 14 })}

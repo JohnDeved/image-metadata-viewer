@@ -18,7 +18,7 @@ import {
   Mountain,
   Code,
 } from 'lucide-react'
-import { getTagValue, formatDate, type GPSData } from '../utils/metadata'
+import { getTagValue, formatDate, getHeadline, type GPSData } from '../utils/metadata'
 import type { ExifMetadata } from '../types/exif'
 import { DataGridItem } from './DataGridItem'
 import { MetadataSection } from './MetadataSection'
@@ -47,9 +47,7 @@ export const MetadataViewer: React.FC<MetadataViewerProps> = ({
 }) => {
   if (!metadata && !loading && !error) return null
 
-  const headline = metadata
-    ? getTagValue(metadata.Headline) || (file ? file.name : 'Unknown Image')
-    : ''
+  const headline = getHeadline(metadata, file)
   const camera = metadata
     ? [getTagValue(metadata.Make), getTagValue(metadata.Model)].filter(Boolean).join(' ')
     : ''
@@ -206,7 +204,7 @@ export const MetadataViewer: React.FC<MetadataViewerProps> = ({
                       {stats.map((s, i) => (
                         <div
                           key={i}
-                          className="bg-slate-900/40 border border-slate-800/60 p-4 rounded-xl flex flex-col items-center justify-center text-center hover:bg-slate-800/60 hover:border-teal-500/30 transition-all duration-300 group"
+                          className="bg-slate-900/40 border border-slate-800/60 p-4 rounded-xl flex flex-col items-center justify-center text-center hover:bg-slate-800/60 hover:border-teal-500/30 transition-all duration-300 backdrop-blur-sm group"
                         >
                           <span className="text-2xl md:text-3xl font-bold text-slate-200 group-hover:text-white transition-colors">
                             {s.v}
@@ -223,7 +221,11 @@ export const MetadataViewer: React.FC<MetadataViewerProps> = ({
                   <div className="grid gap-6 md:grid-cols-2">
                     {/* Image Context */}
                     {(captureString || techString || editString) && (
-                      <MetadataSection title="Image Context" icon={<Monitor />} variants={itemVariants}>
+                      <MetadataSection
+                        title="Image Context"
+                        icon={<Monitor />}
+                        variants={itemVariants}
+                      >
                         {captureString && (
                           <div className="flex items-start gap-3 group">
                             <Calendar className="w-4 h-4 text-slate-500 mt-1 shrink-0 group-hover:text-teal-400 transition-colors" />

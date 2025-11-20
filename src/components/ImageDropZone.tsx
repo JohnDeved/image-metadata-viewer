@@ -1,7 +1,7 @@
 import React from 'react'
 import { motion } from 'framer-motion'
 import { Upload, Trash2 } from 'lucide-react'
-import { getTagValue } from '../utils/metadata'
+import { getHeadline } from '../utils/metadata'
 import type { ExifMetadata } from '../types/exif'
 
 interface ImageDropZoneProps {
@@ -26,9 +26,7 @@ export const ImageDropZone: React.FC<ImageDropZoneProps> = ({
   isDetailView,
   metadata,
 }) => {
-  const headline = metadata
-    ? getTagValue(metadata.Headline) || (file ? file.name : 'Unknown Image')
-    : file?.name || null
+  const headline = getHeadline(metadata, file)
 
   return (
     <motion.div
@@ -43,7 +41,7 @@ export const ImageDropZone: React.FC<ImageDropZoneProps> = ({
           e.stopPropagation()
         }}
         onDrop={onDrop}
-        className={`relative group rounded-2xl overflow-hidden bg-black shadow-2xl border ${isDetailView ? 'border-slate-800' : 'border-slate-700 hover:border-teal-500/50 bg-slate-900/30 aspect-[4/3]'}`}
+        className={`relative group rounded-2xl overflow-hidden bg-black shadow-2xl border transition-all duration-300 backdrop-blur-sm ${isDetailView ? 'border-slate-800' : 'border-slate-700 hover:border-teal-500/50 bg-slate-900/30 aspect-[4/3]'}`}
       >
         {!file && (
           <input

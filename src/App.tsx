@@ -75,7 +75,6 @@ export default function App(): React.JSX.Element {
       setFile(null)
       setPreviewUrl(null)
       setMetadata(null)
-      setError(null)
       setImageLoaded(false)
     }, 700)
   }
