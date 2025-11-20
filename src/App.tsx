@@ -1,15 +1,24 @@
-import React, { useCallback, type DragEvent, type ChangeEvent } from 'react'
+import React, { useCallback, useMemo, type DragEvent, type ChangeEvent } from 'react'
 import { useStore } from './store'
 import { getGPSData } from './utils/metadata'
 import { Header } from './components/Header'
 import { ImageDropZone } from './components/ImageDropZone'
 import { MetadataViewer } from './components/MetadataViewer'
 import { ShaderBackground } from './components/ShaderBackground'
-
-const getErrorMessage = (err: unknown) => err instanceof Error ? err.message : String(err)
+import { getErrorMessage } from './utils/errors'
 
 export default function App(): React.JSX.Element {
-  const { processFile, resetState, setImageLoaded, setIsDetailView, setError, isDetailView } = useStore()
+  const {
+    processFile,
+    resetState,
+    setImageLoaded,
+    setIsDetailView,
+    setError,
+    isDetailView,
+    metadata,
+  } = useStore()
+
+  const gps = useMemo(() => getGPSData(metadata), [metadata])
 
   const loadTestImage = useCallback(() => {
     console.log('Loading test image via button/shortcut...')
@@ -66,7 +75,7 @@ export default function App(): React.JSX.Element {
                 onClear={resetState}
                 onImageLoad={handleImageLoad}
               />
-              <MetadataViewer gps={getGPSData(useStore.getState().metadata)} />
+              <MetadataViewer gps={gps} />
             </div>
           </div>
         </main>

@@ -1,4 +1,4 @@
-import type { ExifMetadata } from '../types/exif'
+import type { Tags as ExifMetadata } from 'exifreader'
 
 export interface GPSData {
   lat: number

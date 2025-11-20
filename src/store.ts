@@ -1,6 +1,6 @@
 import { create } from 'zustand'
-import ExifReader from 'exifreader'
-import type { ExifMetadata } from './types/exif'
+import ExifReader, { type Tags as ExifMetadata } from 'exifreader'
+import { getErrorMessage } from './utils/errors'
 
 interface AppState {
   file: File | null
@@ -38,8 +38,6 @@ const initialState: AppState = {
   isDetailView: false,
   imageLoaded: false,
 }
-
-const getErrorMessage = (err: unknown) => err instanceof Error ? err.message : String(err)
 
 export const useStore = create<Store>((set, get) => ({
   ...initialState,

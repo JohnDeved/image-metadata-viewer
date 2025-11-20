@@ -1,4 +1,4 @@
-import type { ExifMetadata } from '../types/exif'
+import type { Tags as ExifMetadata } from 'exifreader'
 import { getTagValue, formatDate } from './metadata'
 
 // Calculate camera stats for display
