@@ -19,6 +19,11 @@ const IMAGE_ANIMATION = {
   transition: { type: 'spring', stiffness: 200, damping: 30, delay: 0.1 },
 } as const
 
+const handleDragOver: React.DragEventHandler<HTMLDivElement> = e => {
+  e.preventDefault()
+  e.stopPropagation()
+}
+
 export const ImageDropZone: React.FC<ImageDropZoneProps> = ({
   onFileSelect,
   onDrop,
@@ -28,16 +33,11 @@ export const ImageDropZone: React.FC<ImageDropZoneProps> = ({
   const { file, previewUrl, isDetailView, metadata } = useStore()
   const headline = getHeadline(metadata, file)
 
-
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault()
-    e.stopPropagation()
-  }
-
   // Simplified className logic
-  const containerBaseClass = 'relative group rounded-2xl overflow-hidden bg-black shadow-2xl border transition-all duration-300'
-  const containerVariantClass = isDetailView 
-    ? 'border-slate-800' 
+  const containerBaseClass =
+    'relative group rounded-2xl overflow-hidden bg-black shadow-2xl border transition-all duration-300'
+  const containerVariantClass = isDetailView
+    ? 'border-slate-800'
     : 'border-slate-700 hover:border-teal-500/50 bg-slate-900/30 aspect-[4/3]'
 
   return (
@@ -45,7 +45,7 @@ export const ImageDropZone: React.FC<ImageDropZoneProps> = ({
       initial={false}
       animate={{ width: isDetailView ? '40%' : '100%' }}
       transition={PANEL_TRANSITION}
-      className={`relative z-20 flex-shrink-0 ${isDetailView ? 'w-full lg:w-[40%]' : 'w-full'}`}
+      className="relative z-20 flex-shrink-0 w-full"
     >
       <div
         onDragOver={handleDragOver}

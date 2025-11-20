@@ -15,14 +15,13 @@ interface MetadataViewerProps {
 
 export const MetadataViewer: React.FC<MetadataViewerProps> = ({ gps }) => {
   const { metadata, viewMode, setViewMode, loading, error, isDetailView } = useStore()
+  const ready = !!metadata && !loading && !error
 
-  if (!metadata && !loading && !error) return null
+  if (!ready && !loading && !error) return null
 
-  // Check for AI Generation Data
-  const aiParameters =
-    getTagValue(metadata?.parameters) ||
-    getTagValue(metadata?.prompt) ||
-    getTagValue(metadata?.workflow)
+  const aiParameters = (['parameters', 'prompt', 'workflow'] as const)
+    .map(key => getTagValue(metadata?.[key]))
+    .find(Boolean)
   const aiData = aiParameters ? parseAIParameters(aiParameters) : null
 
   return (
@@ -114,20 +113,14 @@ export const MetadataViewer: React.FC<MetadataViewerProps> = ({ gps }) => {
             )}
 
             <AnimatePresence mode="wait">
-              {!loading && !error && !!metadata && viewMode === 'formatted' && (
-                <FormattedMetadataView key="formatted" metadata={metadata} gps={gps} />
+              {ready && viewMode === 'formatted' && (
+                <FormattedMetadataView key="formatted" metadata={metadata!} gps={gps} />
               )}
 
-              {!loading && !error && !!metadata && viewMode === 'raw' && (
-                <RawMetadataView key="raw" metadata={metadata} />
-              )}
+              {ready && viewMode === 'raw' && <RawMetadataView key="raw" metadata={metadata} />}
 
-              {!loading && !error && !!metadata && viewMode === 'ai' && aiData && (
-                <AIMetadataSection
-                  key="ai"
-                  aiData={aiData}
-                  variants={containerVariants}
-                />
+              {ready && viewMode === 'ai' && aiData && (
+                <AIMetadataSection key="ai" aiData={aiData} variants={containerVariants} />
               )}
             </AnimatePresence>
           </motion.div>

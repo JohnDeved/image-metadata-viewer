@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { Code } from 'lucide-react'
 import { downloadJSON } from '../utils/file'
@@ -9,6 +9,16 @@ interface RawMetadataViewProps {
 }
 
 export const RawMetadataView: React.FC<RawMetadataViewProps> = ({ metadata }) => {
+  const formatted = useMemo(() => {
+    try {
+      const json = JSON.stringify(metadata, null, 2)
+      return json === '{}' ? 'No metadata found (empty object)' : json
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : String(e)
+      return `Error displaying JSON: ${message}`
+    }
+  }, [metadata])
+
   return (
     <motion.div
       key="raw"
@@ -32,15 +42,7 @@ export const RawMetadataView: React.FC<RawMetadataViewProps> = ({ metadata }) =>
         </button>
       </div>
       <pre className="font-mono text-xs text-slate-400 bg-black/50 p-4 rounded-lg overflow-x-auto max-h-[600px] overflow-y-auto custom-scrollbar">
-        {(() => {
-          try {
-            const json = JSON.stringify(metadata, null, 2)
-            return json === '{}' ? 'No metadata found (empty object)' : json
-          } catch (e: unknown) {
-            const message = e instanceof Error ? e.message : String(e)
-            return `Error displaying JSON: ${message}`
-          }
-        })()}
+        {formatted}
       </pre>
     </motion.div>
   )

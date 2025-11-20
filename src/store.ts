@@ -54,7 +54,7 @@ export const useStore = create<Store>((set, get) => ({
   resetState: () => {
     const { previewUrl } = get()
     if (previewUrl) URL.revokeObjectURL(previewUrl)
-    set(initialState)
+    set(() => ({ ...initialState }))
   },
 
   processFile: async (fileToProcess: File) => {

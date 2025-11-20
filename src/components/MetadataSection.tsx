@@ -9,7 +9,7 @@ interface MetadataSectionProps {
   className?: string
 }
 
-const baseClassName = 
+const baseClassName =
   'bg-slate-900/40 rounded-xl border border-slate-800/60 p-5 space-y-4 ' +
   'hover:bg-slate-800/60 hover:border-teal-500/30 transition-all duration-300 backdrop-blur-sm'
 

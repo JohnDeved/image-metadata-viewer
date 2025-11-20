@@ -20,37 +20,46 @@ export default function App(): React.JSX.Element {
 
   const gps = useMemo(() => getGPSData(metadata), [metadata])
 
+  const handleFile = useCallback(
+    (file: File) => {
+      if (file) processFile(file)
+    },
+    [processFile]
+  )
+
   const loadTestImage = useCallback(() => {
-    console.log('Loading test image via button/shortcut...')
-    fetch('/test/DSCN0010.jpg')
-      .then(res => {
+    const load = async () => {
+      try {
+        console.log('Loading test image via button/shortcut...')
+        const res = await fetch('/test/DSCN0010.jpg')
         if (!res.ok) throw new Error('Failed to load test image')
-        return res.blob()
-      })
-      .then(blob => {
+        const blob = await res.blob()
         const testFile = new File([blob], 'Canon_40D_photoshop_import.jpg', { type: 'image/jpeg' })
-        processFile(testFile)
-      })
-      .catch(err => {
+        handleFile(testFile)
+      } catch (err: unknown) {
         console.error('Error loading test image:', err)
         setError(`Failed to load test image: ${getErrorMessage(err)}`)
-      })
-  }, [processFile, setError])
+      }
+    }
+    void load()
+  }, [handleFile, setError])
 
   const handleDrop = useCallback(
     (e: DragEvent<HTMLDivElement>) => {
       e.preventDefault()
       e.stopPropagation()
-      if (e.dataTransfer.files?.[0]) processFile(e.dataTransfer.files[0])
+      const file = e.dataTransfer.files?.[0]
+      if (file) handleFile(file)
     },
-    [processFile]
+    [handleFile]
   )
 
   const handleFileSelect = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
-      if (e.target.files?.[0]) processFile(e.target.files[0])
+      const file = e.target.files?.[0]
+      if (file) handleFile(file)
     },
-    [processFile]
+    [handleFile]
   )
 
   const handleImageLoad = useCallback(() => {

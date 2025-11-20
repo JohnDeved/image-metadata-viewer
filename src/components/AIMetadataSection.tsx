@@ -78,11 +78,7 @@ export const AIMetadataSection: React.FC<AIMetadataSectionProps> = ({ aiData, va
 
       {/* Settings Grid */}
       {settingItems.length > 0 && (
-        <MetadataGrid
-          title="Generation Settings"
-          items={settingItems}
-          variants={itemVariants}
-        />
+        <MetadataGrid title="Generation Settings" items={settingItems} variants={itemVariants} />
       )}
     </motion.div>
   )
