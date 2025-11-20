@@ -1,6 +1,6 @@
 import React from 'react'
 import { motion, type Variants } from 'framer-motion'
-import { Sparkles, Terminal, Settings, Copy, Check } from 'lucide-react'
+import { Terminal, Settings, Copy, Check } from 'lucide-react'
 import { type AIData } from '../utils/aiMetadata'
 import { MetadataGrid } from './MetadataGrid'
 import { itemVariants } from '../utils/animations'
