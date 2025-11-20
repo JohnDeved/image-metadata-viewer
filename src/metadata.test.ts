@@ -17,22 +17,43 @@ describe('Metadata Extraction', () => {
       console.log(`\n--- Metadata for ${file} ---`)
       // Log interesting tags to help decide what to add to the viewer
       const interestingTags = [
-        'Make', 'Model', 'LensModel', 'FNumber', 'ExposureTime', 'ISOSpeedRatings', 
-        'FocalLength', 'DateTimeOriginal', 'Software', 'Artist', 'Copyright', 
-        'ExposureProgram', 'GPSAltitude',
-        'CreatorTool', 'ModifyDate', 'MetadataDate', 'CreateDate', 'Instructions', 'Headline', 'Credit', 'Source', 'Title'
+        'Make',
+        'Model',
+        'LensModel',
+        'FNumber',
+        'ExposureTime',
+        'ISOSpeedRatings',
+        'FocalLength',
+        'DateTimeOriginal',
+        'Software',
+        'Artist',
+        'Copyright',
+        'ExposureProgram',
+        'GPSAltitude',
+        'CreatorTool',
+        'ModifyDate',
+        'MetadataDate',
+        'CreateDate',
+        'Instructions',
+        'Headline',
+        'Credit',
+        'Source',
+        'Title',
       ]
-      
+
       interestingTags.forEach(tag => {
         if (tags[tag]) {
-            console.log(`${tag}:`, tags[tag])
+          console.log(`${tag}:`, tags[tag])
         }
       })
-      
+
       if (tags.rights) console.log('rights:', tags.rights)
-      
+
       // Also log raw keys to see what else is available
-      console.log('Available Keys:', Object.keys(tags).filter(k => !k.includes('Thumbnail') && !k.includes('MakerNote')))
+      console.log(
+        'Available Keys:',
+        Object.keys(tags).filter(k => !k.includes('Thumbnail') && !k.includes('MakerNote'))
+      )
 
       expect(tags).toBeDefined()
       // Basic assertion to ensure we got something
