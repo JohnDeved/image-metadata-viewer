@@ -28,13 +28,22 @@ export const formatDate = (dateString: any) => {
 
 export const getTagValue = (tag: any) => {
   if (tag === null || tag === undefined) return null
-  if (typeof tag === 'string' || typeof tag === 'number') return String(tag)
-  if (typeof tag.description === 'string' && tag.description.trim().length > 0) return tag.description
-  if (Array.isArray(tag.value)) {
+  
+  let value: string | null = null
+  
+  if (typeof tag === 'string' || typeof tag === 'number') {
+    value = String(tag)
+  } else if (typeof tag.description === 'string' && tag.description.trim().length > 0) {
+    value = tag.description
+  } else if (Array.isArray(tag.value)) {
     const parts = tag.value.filter((v: any) => typeof v === 'string' || typeof v === 'number')
-    return parts.length > 0 ? parts.join(', ') : null
+    value = parts.length > 0 ? parts.join(', ') : null
+  } else {
+    value = (typeof tag.value === 'string' || typeof tag.value === 'number') ? String(tag.value) : null
   }
-  return (typeof tag.value === 'string' || typeof tag.value === 'number') ? String(tag.value) : null
+
+  if (value === 'Unknown' || value === '' || value === '""') return null
+  return value
 }
 
 export const getGPSData = (metadata: any): GPSData | null => {

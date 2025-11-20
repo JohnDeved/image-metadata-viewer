@@ -107,73 +107,83 @@ export const MetadataViewer: React.FC<MetadataViewerProps> = ({ metadata, gps, v
                   className='space-y-8'
                 >
                   
-                  {/* Hero Section - Subtitle Only */}
+                  {/* Hero Section - Camera & Lens */}
                   {subtitle && (
-                    <motion.div variants={itemVariants} className="text-center mb-6">
-                      <p className="text-lg text-slate-400 font-medium">{subtitle}</p>
+                    <motion.div variants={itemVariants} className="text-center mb-8 relative">
+                      <div className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 w-32 h-32 bg-teal-500/20 blur-[50px] rounded-full pointer-events-none" />
+                      <h3 className="text-3xl md:text-4xl font-bold text-white tracking-tight relative z-10 drop-shadow-sm">
+                        {camera}
+                      </h3>
+                      {lens && <p className="text-lg text-teal-400 font-medium mt-2 relative z-10">{lens}</p>}
                     </motion.div>
                   )}
 
                   {/* Key Stats Row */}
                   {stats.length > 0 && (
-                    <motion.div variants={itemVariants} className="flex flex-wrap justify-center gap-4 md:gap-8 py-6 border-y border-slate-800/50">
+                    <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                       {stats.map((s, i) => (
-                        <div key={i} className="flex flex-col items-center">
-                          <span className="text-xl md:text-2xl font-semibold text-slate-200">{s.v}</span>
-                          <span className="text-xs uppercase tracking-wider text-slate-500 font-medium mt-1">{s.l}</span>
+                        <div key={i} className="bg-slate-900/40 border border-slate-800/60 p-4 rounded-xl flex flex-col items-center justify-center text-center hover:bg-slate-800/60 hover:border-teal-500/30 transition-all duration-300 group">
+                          <span className="text-2xl md:text-3xl font-bold text-slate-200 group-hover:text-white transition-colors">{s.v}</span>
+                          <span className="text-xs uppercase tracking-wider text-slate-500 font-medium mt-1 group-hover:text-teal-400 transition-colors">{s.l}</span>
                         </div>
                       ))}
                     </motion.div>
                   )}
 
-                  {/* Contextual Details */}
-                  <div className="grid gap-6 md:grid-cols-2">
-                    {/* Image Context */}
-                    <motion.div variants={itemVariants} className="bg-slate-900/50 rounded-xl border border-slate-800/50 p-4 space-y-4">
-                      <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Image Context</h3>
-                      <div className="space-y-3">
-                        {captureString && (
-                          <div className="flex items-start gap-3">
-                            <Calendar className="w-5 h-5 text-slate-400 mt-0.5 shrink-0" />
-                            <p className="text-slate-300">{captureString}</p>
-                          </div>
-                        )}
-                        {techString && (
-                          <div className="flex items-start gap-3">
-                            <ImageIcon className="w-5 h-5 text-slate-400 mt-0.5 shrink-0" />
-                            <p className="text-slate-300">{techString}</p>
-                          </div>
-                        )}
-                        {editString && (
-                          <div className="flex items-start gap-3">
-                            <Monitor className="w-5 h-5 text-slate-400 mt-0.5 shrink-0" />
-                            <p className="text-slate-300">{editString}</p>
-                          </div>
-                        )}
-                      </div>
-                    </motion.div>
+                    {/* Contextual Details */}
+                    <div className="grid gap-6 md:grid-cols-2">
+                      {/* Image Context */}
+                      <motion.div variants={itemVariants} className="bg-slate-900/40 rounded-xl border border-slate-800/60 p-5 space-y-4 hover:border-slate-700 transition-colors">
+                        <h3 className="text-xs font-bold text-teal-500/70 uppercase tracking-widest flex items-center gap-2">
+                          <Monitor size={14} /> Image Context
+                        </h3>
+                        <div className="space-y-3">
+                          {captureString && (
+                            <div className="flex items-start gap-3 group">
+                              <Calendar className="w-4 h-4 text-slate-500 mt-1 shrink-0 group-hover:text-teal-400 transition-colors" />
+                              <p className="text-slate-300 text-sm leading-relaxed">{captureString}</p>
+                            </div>
+                          )}
+                          {techString && (
+                            <div className="flex items-start gap-3 group">
+                              <ImageIcon className="w-4 h-4 text-slate-500 mt-1 shrink-0 group-hover:text-teal-400 transition-colors" />
+                              <p className="text-slate-300 text-sm leading-relaxed">{techString}</p>
+                            </div>
+                          )}
+                          {editString && (
+                            <div className="flex items-start gap-3 group">
+                              <Sliders className="w-4 h-4 text-slate-500 mt-1 shrink-0 group-hover:text-teal-400 transition-colors" />
+                              <p className="text-slate-300 text-sm leading-relaxed">{editString}</p>
+                            </div>
+                          )}
+                        </div>
+                      </motion.div>
 
-                    {/* Description & Rights */}
-                    {(() => {
-                      const desc = getTagValue(metadata.ImageDescription) || getTagValue(metadata.description)
-                      const copyright = getTagValue(metadata.Copyright)
-                      const artist = getTagValue(metadata.Artist)
-                      const hasDesc = desc && desc.trim().length > 0 && desc.trim() !== '""'
-                      
-                      if (!hasDesc && !copyright && !artist) return null
+                      {/* Description & Rights */}
+                      {(() => {
+                        const desc = getTagValue(metadata.ImageDescription) || getTagValue(metadata.description)
+                        const copyright = getTagValue(metadata.Copyright)
+                        const artist = getTagValue(metadata.Artist)
+                        const hasDesc = desc && desc.trim().length > 0 && desc.trim() !== '""'
+                        
+                        if (!hasDesc && !copyright && !artist) return null
 
-                      return (
-                        <motion.div variants={itemVariants} className="bg-slate-900/50 rounded-xl border border-slate-800/50 p-4 space-y-4">
-                          <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Description & Rights</h3>
-                          <div className="space-y-3 text-slate-300">
-                            {hasDesc && <p className="italic">"{desc}"</p>}
-                            {copyright && <p className="text-sm text-slate-400">© {copyright}</p>}
-                            {artist && <p className="text-sm text-slate-400">By {artist}</p>}
-                          </div>
-                        </motion.div>
-                      )
-                    })()}
-                  </div>
+                        return (
+                          <motion.div variants={itemVariants} className="bg-slate-900/40 rounded-xl border border-slate-800/60 p-5 space-y-4 hover:border-slate-700 transition-colors">
+                            <h3 className="text-xs font-bold text-teal-500/70 uppercase tracking-widest flex items-center gap-2">
+                              <FileText size={14} /> Description & Rights
+                            </h3>
+                            <div className="space-y-3 text-slate-300">
+                              {hasDesc && <p className="italic text-sm leading-relaxed text-slate-400 border-l-2 border-slate-700 pl-3 py-1">"{desc}"</p>}
+                              <div className="flex flex-col gap-1 mt-2">
+                                {copyright && <p className="text-xs text-slate-500 font-medium flex items-center gap-1"><span className="text-slate-400">©</span> {copyright}</p>}
+                                {artist && <p className="text-xs text-slate-500 font-medium flex items-center gap-1"><User size={12} /> {artist}</p>}
+                              </div>
+                            </div>
+                          </motion.div>
+                        )
+                      })()}
+                    </div>
 
                   {/* Additional Data Sections */}
                   <div className="space-y-4">
