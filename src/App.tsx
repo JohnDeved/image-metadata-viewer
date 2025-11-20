@@ -78,6 +78,16 @@ const Header = () => (
   </header>
 )
 
+const DataGridItem = ({ label, value, icon }: { label: string, value: any, icon: React.ReactNode }) => (
+  <div className="bg-slate-900/50 rounded-xl border border-slate-800/50 p-4 flex flex-col gap-1 hover:border-indigo-500/30 transition-colors group">
+    <div className="flex items-center gap-2 text-indigo-400 mb-1 group-hover:text-indigo-300 transition-colors">
+      {icon}
+      <span className="text-xs uppercase font-bold tracking-wider text-slate-500 group-hover:text-slate-400">{label}</span>
+    </div>
+    <span className="text-slate-200 font-semibold text-lg leading-tight">{value}</span>
+  </div>
+)
+
 
 
 const ImageDropZone = ({ file, previewUrl, onFileSelect, onDrop, onClear, imageLoaded, onImageLoad, isDetailView, metadata }: any) => {
@@ -179,8 +189,8 @@ const MetadataViewer = ({ metadata, gps, viewMode, file, setViewMode, isDetailVi
             {/* Contextual Details */}
             <div className="grid gap-6 md:grid-cols-2">
               {/* Image Context */}
-              <div className="bg-slate-900/50 rounded-xl border border-slate-800/50 p-6 space-y-4">
-                <h3 className="text-sm uppercase tracking-wider text-slate-500 font-semibold">Image Context</h3>
+              <div className="bg-slate-900/50 rounded-xl border border-slate-800/50 p-4 space-y-4">
+                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Image Context</h3>
                 <div className="space-y-3">
                   {captureString && (
                     <div className="flex items-start gap-3">
@@ -204,105 +214,102 @@ const MetadataViewer = ({ metadata, gps, viewMode, file, setViewMode, isDetailVi
               </div>
 
               {/* Description & Rights */}
-              {(getTagValue(metadata.ImageDescription) || getTagValue(metadata.description) || getTagValue(metadata.Copyright)) && (
-                <div className="bg-slate-900/50 rounded-xl border border-slate-800/50 p-6 space-y-4">
-                  <h3 className="text-sm uppercase tracking-wider text-slate-500 font-semibold">Description & Rights</h3>
-                  <div className="space-y-3 text-slate-300">
-                    {getTagValue(metadata.ImageDescription) || getTagValue(metadata.description) ? (
-                      <p className="italic">"{getTagValue(metadata.ImageDescription) || getTagValue(metadata.description)}"</p>
-                    ) : null}
-                    {getTagValue(metadata.Copyright) && (
-                      <p className="text-sm text-slate-400">© {getTagValue(metadata.Copyright)}</p>
-                    )}
-                    {getTagValue(metadata.Artist) && (
-                       <p className="text-sm text-slate-400">By {getTagValue(metadata.Artist)}</p>
-                    )}
+              {(() => {
+                const desc = getTagValue(metadata.ImageDescription) || getTagValue(metadata.description)
+                const copyright = getTagValue(metadata.Copyright)
+                const artist = getTagValue(metadata.Artist)
+                const hasDesc = desc && desc.trim().length > 0 && desc.trim() !== '""'
+                
+                if (!hasDesc && !copyright && !artist) return null
+
+                return (
+                  <div className="bg-slate-900/50 rounded-xl border border-slate-800/50 p-4 space-y-4">
+                    <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Description & Rights</h3>
+                    <div className="space-y-3 text-slate-300">
+                      {hasDesc && <p className="italic">"{desc}"</p>}
+                      {copyright && <p className="text-sm text-slate-400">© {copyright}</p>}
+                      {artist && <p className="text-sm text-slate-400">By {artist}</p>}
+                    </div>
                   </div>
-                </div>
-              )}
+                )
+              })()}
             </div>
 
             {/* Additional Data Sections */}
             <div className="space-y-4">
             {/* Detailed Capture Settings (Grid) */}
-            <div className="grid grid-cols-2 gap-4">
-              {[
+            {/* Detailed Capture Settings (Grid) */}
+            {(() => {
+              const items = [
                 { l: 'Exposure Program', v: metadata.ExposureProgram, i: <Sliders size={18} /> },
                 { l: 'Metering Mode', v: metadata.MeteringMode, i: <Crosshair size={18} /> },
                 { l: 'Flash', v: metadata.Flash, i: <Zap size={18} /> },
                 { l: 'White Balance', v: metadata.WhiteBalance, i: <Sun size={18} /> },
-              ].map((item, idx) => {
+              ].filter(item => {
                 const val = getTagValue(item.v)
-                if (!val || val === 'Unknown') return null
-                return (
-                  <div key={idx} className="bg-slate-900/50 rounded-xl border border-slate-800/50 p-4 flex flex-col gap-1 hover:border-indigo-500/30 transition-colors group">
-                    <div className="flex items-center gap-2 text-indigo-400 mb-1 group-hover:text-indigo-300 transition-colors">
-                      {item.i}
-                      <span className="text-xs uppercase font-bold tracking-wider text-slate-500 group-hover:text-slate-400">{item.l}</span>
-                    </div>
-                    <span className="text-slate-200 font-semibold text-lg leading-tight">{val}</span>
+                return val && val !== 'Unknown'
+              })
+
+              if (items.length === 0) return null
+
+              return (
+                <div className="space-y-3">
+                  <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Capture Settings</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    {items.map((item, idx) => (
+                      <DataGridItem key={idx} label={item.l} value={getTagValue(item.v)} icon={item.i} />
+                    ))}
                   </div>
-                )
-              })}
-            </div>
+                </div>
+              )
+            })()}
 
             {/* Editorial & Instructions (Grid) */}
-            <div className="grid grid-cols-2 gap-4">
-              {[
+            {/* Editorial & Instructions (Grid) */}
+            {(() => {
+              const items = [
                 { l: 'Instructions', v: metadata.Instructions, i: <FileText size={18} /> },
                 { l: 'Credit', v: metadata.Credit, i: <User size={18} /> },
                 { l: 'Source', v: metadata.Source, i: <Globe size={18} /> },
                 { l: 'Headline', v: metadata.Headline !== headline ? metadata.Headline : null, i: <Type size={18} /> }
-              ].map((item, idx) => {
+              ].filter(item => {
                 const val = getTagValue(item.v)
-                if (!val || val === 'Unknown') return null
-                return (
-                  <div key={idx} className="bg-slate-900/50 rounded-xl border border-slate-800/50 p-4 flex flex-col gap-1 hover:border-indigo-500/30 transition-colors group">
-                    <div className="flex items-center gap-2 text-indigo-400 mb-1 group-hover:text-indigo-300 transition-colors">
-                      {item.i}
-                      <span className="text-xs uppercase font-bold tracking-wider text-slate-500 group-hover:text-slate-400">{item.l}</span>
-                    </div>
-                    <span className="text-slate-200 font-semibold text-lg leading-tight">{val}</span>
+                return val && val !== 'Unknown'
+              })
+
+              if (items.length === 0) return null
+
+              return (
+                <div className="space-y-3">
+                  <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Editorial</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    {items.map((item, idx) => (
+                      <DataGridItem key={idx} label={item.l} value={getTagValue(item.v)} icon={item.i} />
+                    ))}
                   </div>
-                )
-              })}
-            </div>
+                </div>
+              )
+            })()}
             </div>
 
             {/* GPS Section */}
             {gps ? (
-              <div className='bg-slate-900 rounded-xl border border-slate-800 overflow-hidden'>
-                <div className='p-4 border-b border-slate-800 flex justify-between items-center'>
-                  <h3 className='font-semibold text-slate-200 flex items-center gap-2'><MapPin size={16} className='text-indigo-400' />Location Data</h3>
-                  <a href={`https://www.google.com/maps/search/?api=1&query=${gps.lat},${gps.lng}`} target='_blank' rel='noreferrer' className='text-xs bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-full transition-colors'>Open Maps</a>
+              <div className="space-y-3">
+                <div className="flex justify-between items-end">
+                  <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Location</h3>
+                  <a href={`https://www.google.com/maps/search/?api=1&query=${gps.lat},${gps.lng}`} target='_blank' rel='noreferrer' className='text-xs bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1 rounded-full transition-colors flex items-center gap-1'>
+                    <MapPin size={12} /> Open Maps
+                  </a>
                 </div>
-                <div className='p-4 grid grid-cols-2 gap-4'>
-                  <div className="bg-slate-900/50 rounded-xl border border-slate-800/50 p-4 flex flex-col gap-1 hover:border-indigo-500/30 transition-colors group">
-                    <div className="flex items-center gap-2 text-indigo-400 mb-1 group-hover:text-indigo-300 transition-colors">
-                      <Navigation size={18} />
-                      <span className="text-xs uppercase font-bold tracking-wider text-slate-500 group-hover:text-slate-400">Latitude</span>
-                    </div>
-                    <span className="text-slate-200 font-semibold text-lg leading-tight">{gps.lat.toFixed(6)}° {gps.latRef}</span>
-                  </div>
-                  <div className="bg-slate-900/50 rounded-xl border border-slate-800/50 p-4 flex flex-col gap-1 hover:border-indigo-500/30 transition-colors group">
-                    <div className="flex items-center gap-2 text-indigo-400 mb-1 group-hover:text-indigo-300 transition-colors">
-                      <Navigation size={18} className="rotate-90" />
-                      <span className="text-xs uppercase font-bold tracking-wider text-slate-500 group-hover:text-slate-400">Longitude</span>
-                    </div>
-                    <span className="text-slate-200 font-semibold text-lg leading-tight">{gps.lng.toFixed(6)}° {gps.longRef}</span>
-                  </div>
+                <div className='grid grid-cols-2 gap-4'>
+                  <DataGridItem label="Latitude" value={`${gps.lat.toFixed(6)}° ${gps.latRef}`} icon={<Navigation size={18} />} />
+                  <DataGridItem label="Longitude" value={`${gps.lng.toFixed(6)}° ${gps.longRef}`} icon={<Navigation size={18} className="rotate-90" />} />
                   {metadata.GPSAltitude && (
-                    <div className="bg-slate-900/50 rounded-xl border border-slate-800/50 p-4 flex flex-col gap-1 hover:border-indigo-500/30 transition-colors group">
-                      <div className="flex items-center gap-2 text-indigo-400 mb-1 group-hover:text-indigo-300 transition-colors">
-                        <Mountain size={18} />
-                        <span className="text-xs uppercase font-bold tracking-wider text-slate-500 group-hover:text-slate-400">Altitude</span>
-                      </div>
-                      <span className="text-slate-200 font-semibold text-lg leading-tight">{Math.round(Number(getTagValue(metadata.GPSAltitude)) || 0)}m</span>
-                    </div>
+                    <DataGridItem label="Altitude" value={`${Math.round(Number(getTagValue(metadata.GPSAltitude)) || 0)}m`} icon={<Mountain size={18} />} />
                   )}
                 </div>
               </div>
-            ) : <div className='p-4 rounded-xl border border-dashed border-slate-800 text-slate-500 text-center text-sm'>No GPS data found in image</div>}
+            ) : null}
           </div>
         )}
 
