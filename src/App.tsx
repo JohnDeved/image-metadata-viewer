@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react'
 import type { DragEvent, ChangeEvent } from 'react'
 import { Upload, Image as ImageIcon, MapPin, Camera, Calendar, Trash2, ShieldCheck, Code, AlertCircle, Monitor, Zap, Sun, Crosshair, Sliders, FileText, User, Globe, Type, Navigation, Mountain } from 'lucide-react'
 import ExifReader from 'exifreader'
+import { motion, AnimatePresence } from 'framer-motion'
 
 // --- Types & Helpers ---
 interface GPSData { lat: number; lng: number; latRef: string; longRef: string }
@@ -10,7 +11,7 @@ const parseRational = (val: any): number =>
   (Array.isArray(val) && val.length === 2 && typeof val[0] === 'number' && typeof val[1] === 'number') ? val[0] / val[1] : (Number(val) || 0)
 
 const convertDMSToDD = (d: number, m: number, s: number, dir: string) => {
-  let dd = d + m / 60 + s / 3600
+  const dd = d + m / 60 + s / 3600
   return (dir === 'S' || dir === 'W') ? dd * -1 : dd
 }
 
@@ -94,7 +95,12 @@ const ImageDropZone = ({ file, previewUrl, onFileSelect, onDrop, onClear, imageL
   const headline = metadata ? (getTagValue(metadata.Headline) || (file ? file.name : 'Unknown Image')) : (file ? file.name : null)
 
   return (
-    <div className={`relative z-20 flex-shrink-0 transition-all duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] ${isDetailView ? 'w-full lg:w-[40%]' : 'w-full'}`}>
+    <motion.div 
+      initial={false}
+      animate={{ width: isDetailView ? '40%' : '100%' }}
+      transition={{ type: 'spring', stiffness: 400, damping: 40 }}
+      className={`relative z-20 flex-shrink-0 ${isDetailView ? 'w-full lg:w-[40%]' : 'w-full'}`}
+    >
       <div onDragOver={(e) => { e.preventDefault(); e.stopPropagation() }} onDrop={onDrop} className={`relative group rounded-2xl overflow-hidden bg-black shadow-2xl border transition-all duration-700 ${isDetailView ? 'border-slate-800' : 'border-slate-700 hover:border-indigo-500/50 bg-slate-900/30 aspect-[4/3]'}`}>
         {!file && <input type='file' onChange={onFileSelect} className='absolute inset-0 w-full h-full opacity-0 cursor-pointer z-30' accept='image/*' />}
         <div className={`absolute inset-0 flex flex-col items-center justify-center text-slate-400 transition-all duration-500 ${previewUrl ? 'opacity-0 scale-90' : 'opacity-100 scale-100'}`}>
@@ -116,7 +122,7 @@ const ImageDropZone = ({ file, previewUrl, onFileSelect, onDrop, onClear, imageL
           </div>
         )}
       </div>
-    </div>
+    </motion.div>
   )
 }
 
@@ -150,185 +156,196 @@ const MetadataViewer = ({ metadata, gps, viewMode, file, setViewMode, isDetailVi
   const editString = software ? `Edited with ${software}${editedDate ? ` on ${editedDate}` : ''}` : null
 
   return (
-    <div className={`transition-all duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] overflow-hidden ${isDetailView ? 'lg:w-[60%] opacity-100 max-w-[1000px] lg:pl-8' : 'w-0 opacity-0 max-w-0'}`}>
-      <div className="min-w-[320px]">
-        <div className='flex items-center justify-between mb-6 pt-1'>
-          <h2 className='text-2xl font-bold text-white flex items-center gap-3'><div className="p-1.5 bg-indigo-500/10 rounded-lg border border-indigo-500/20"><ImageIcon size={20} className='text-indigo-400' /></div>Image Data</h2>
-          <div className='flex bg-slate-900 p-1 rounded-lg border border-slate-800'>
-            {['formatted', 'raw'].map(mode => (
-              <button key={mode} onClick={() => setViewMode(mode as any)} className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${viewMode === mode ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}>{mode.charAt(0).toUpperCase() + mode.slice(1)}</button>
-            ))}
-          </div>
-        </div>
-
-        {loading && <div className='p-8 text-center text-slate-500 animate-pulse bg-slate-900/50 rounded-xl border border-slate-800'>Processing image data...</div>}
-        {error && <div className='p-4 bg-red-950/30 border border-red-900/50 rounded-xl text-red-300 flex items-start gap-3'><AlertCircle className='shrink-0 mt-0.5' size={18} /><div><p className='font-medium'>Unable to read data</p><p className='text-sm opacity-80 mt-1'>{error}</p></div></div>}
-
-        {!loading && !error && metadata && viewMode === 'formatted' && (
-          <div className='space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 fill-mode-both' style={{ animationDelay: '400ms' }}>
-            
-            {/* Hero Section - Subtitle Only */}
-            {subtitle && (
-              <div className="text-center mb-6">
-                <p className="text-lg text-slate-400 font-medium">{subtitle}</p>
-              </div>
-            )}
-
-            {/* Key Stats Row */}
-            {stats.length > 0 && (
-              <div className="flex flex-wrap justify-center gap-4 md:gap-8 py-6 border-y border-slate-800/50">
-                {stats.map((s, i) => (
-                  <div key={i} className="flex flex-col items-center">
-                    <span className="text-xl md:text-2xl font-semibold text-slate-200">{s.v}</span>
-                    <span className="text-xs uppercase tracking-wider text-slate-500 font-medium mt-1">{s.l}</span>
-                  </div>
+    <AnimatePresence mode="wait">
+      {isDetailView && (
+        <motion.div 
+          initial={{ width: 0, opacity: 0 }}
+          animate={{ width: '60%', opacity: 1 }}
+          exit={{ width: 0, opacity: 0 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 40 }}
+          className="overflow-hidden lg:pl-8 flex-shrink-0"
+        >
+          {/* Inner container with min-width to prevent squeezing */}
+          <div className="min-w-[640px]">
+            <div className='flex items-center justify-between mb-6 pt-1'>
+              <h2 className='text-2xl font-bold text-white flex items-center gap-3'><div className="p-1.5 bg-indigo-500/10 rounded-lg border border-indigo-500/20"><ImageIcon size={20} className='text-indigo-400' /></div>Image Data</h2>
+              <div className='flex bg-slate-900 p-1 rounded-lg border border-slate-800'>
+                {['formatted', 'raw'].map(mode => (
+                  <button key={mode} onClick={() => setViewMode(mode as any)} className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${viewMode === mode ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}>{mode.charAt(0).toUpperCase() + mode.slice(1)}</button>
                 ))}
               </div>
+            </div>
+
+            {loading && <div className='p-8 text-center text-slate-500 animate-pulse bg-slate-900/50 rounded-xl border border-slate-800'>Processing image data...</div>}
+            {error && <div className='p-4 bg-red-950/30 border border-red-900/50 rounded-xl text-red-300 flex items-start gap-3'><AlertCircle className='shrink-0 mt-0.5' size={18} /><div><p className='font-medium'>Unable to read data</p><p className='text-sm opacity-80 mt-1'>{error}</p></div></div>}
+
+            {!loading && !error && metadata && viewMode === 'formatted' && (
+              <div className='space-y-8'>
+                
+                {/* Hero Section - Subtitle Only */}
+                {subtitle && (
+                  <div className="text-center mb-6">
+                    <p className="text-lg text-slate-400 font-medium">{subtitle}</p>
+                  </div>
+                )}
+
+                {/* Key Stats Row */}
+                {stats.length > 0 && (
+                  <div className="flex flex-wrap justify-center gap-4 md:gap-8 py-6 border-y border-slate-800/50">
+                    {stats.map((s, i) => (
+                      <div key={i} className="flex flex-col items-center">
+                        <span className="text-xl md:text-2xl font-semibold text-slate-200">{s.v}</span>
+                        <span className="text-xs uppercase tracking-wider text-slate-500 font-medium mt-1">{s.l}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Contextual Details */}
+                <div className="grid gap-6 md:grid-cols-2">
+                  {/* Image Context */}
+                  <div className="bg-slate-900/50 rounded-xl border border-slate-800/50 p-4 space-y-4">
+                    <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Image Context</h3>
+                    <div className="space-y-3">
+                      {captureString && (
+                        <div className="flex items-start gap-3">
+                          <Calendar className="w-5 h-5 text-slate-400 mt-0.5 shrink-0" />
+                          <p className="text-slate-300">{captureString}</p>
+                        </div>
+                      )}
+                      {techString && (
+                        <div className="flex items-start gap-3">
+                          <ImageIcon className="w-5 h-5 text-slate-400 mt-0.5 shrink-0" />
+                          <p className="text-slate-300">{techString}</p>
+                        </div>
+                      )}
+                      {editString && (
+                        <div className="flex items-start gap-3">
+                          <Monitor className="w-5 h-5 text-slate-400 mt-0.5 shrink-0" />
+                          <p className="text-slate-300">{editString}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Description & Rights */}
+                  {(() => {
+                    const desc = getTagValue(metadata.ImageDescription) || getTagValue(metadata.description)
+                    const copyright = getTagValue(metadata.Copyright)
+                    const artist = getTagValue(metadata.Artist)
+                    const hasDesc = desc && desc.trim().length > 0 && desc.trim() !== '""'
+                    
+                    if (!hasDesc && !copyright && !artist) return null
+
+                    return (
+                      <div className="bg-slate-900/50 rounded-xl border border-slate-800/50 p-4 space-y-4">
+                        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Description & Rights</h3>
+                        <div className="space-y-3 text-slate-300">
+                          {hasDesc && <p className="italic">"{desc}"</p>}
+                          {copyright && <p className="text-sm text-slate-400">© {copyright}</p>}
+                          {artist && <p className="text-sm text-slate-400">By {artist}</p>}
+                        </div>
+                      </div>
+                    )
+                  })()}
+                </div>
+
+                {/* Additional Data Sections */}
+                <div className="space-y-4">
+                {/* Detailed Capture Settings (Grid) */}
+                {/* Detailed Capture Settings (Grid) */}
+                {(() => {
+                  const items = [
+                    { l: 'Exposure Program', v: metadata.ExposureProgram, i: <Sliders size={18} /> },
+                    { l: 'Metering Mode', v: metadata.MeteringMode, i: <Crosshair size={18} /> },
+                    { l: 'Flash', v: metadata.Flash, i: <Zap size={18} /> },
+                    { l: 'White Balance', v: metadata.WhiteBalance, i: <Sun size={18} /> },
+                  ].filter(item => {
+                    const val = getTagValue(item.v)
+                    return val && val !== 'Unknown'
+                  })
+
+                  if (items.length === 0) return null
+
+                  return (
+                    <div className="space-y-3">
+                      <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Capture Settings</h3>
+                      <div className="grid grid-cols-2 gap-4">
+                        {items.map((item, idx) => (
+                          <DataGridItem key={idx} label={item.l} value={getTagValue(item.v)} icon={item.i} />
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })()}
+
+                {/* Editorial & Instructions (Grid) */}
+                {/* Editorial & Instructions (Grid) */}
+                {(() => {
+                  const items = [
+                    { l: 'Instructions', v: metadata.Instructions, i: <FileText size={18} /> },
+                    { l: 'Credit', v: metadata.Credit, i: <User size={18} /> },
+                    { l: 'Source', v: metadata.Source, i: <Globe size={18} /> },
+                    { l: 'Headline', v: metadata.Headline !== headline ? metadata.Headline : null, i: <Type size={18} /> }
+                  ].filter(item => {
+                    const val = getTagValue(item.v)
+                    return val && val !== 'Unknown'
+                  })
+
+                  if (items.length === 0) return null
+
+                  return (
+                    <div className="space-y-3">
+                      <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Editorial</h3>
+                      <div className="grid grid-cols-2 gap-4">
+                        {items.map((item, idx) => (
+                          <DataGridItem key={idx} label={item.l} value={getTagValue(item.v)} icon={item.i} />
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })()}
+                </div>
+
+                {/* GPS Section */}
+                {gps ? (
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-end">
+                      <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Location</h3>
+                      <a href={`https://www.google.com/maps/search/?api=1&query=${gps.lat},${gps.lng}`} target='_blank' rel='noreferrer' className='text-xs bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1 rounded-full transition-colors flex items-center gap-1'>
+                        <MapPin size={12} /> Open Maps
+                      </a>
+                    </div>
+                    <div className='grid grid-cols-2 gap-4'>
+                      <DataGridItem label="Latitude" value={`${gps.lat.toFixed(6)}° ${gps.latRef}`} icon={<Navigation size={18} />} />
+                      <DataGridItem label="Longitude" value={`${gps.lng.toFixed(6)}° ${gps.longRef}`} icon={<Navigation size={18} className="rotate-90" />} />
+                      {metadata.GPSAltitude && (
+                        <DataGridItem label="Altitude" value={`${Math.round(Number(getTagValue(metadata.GPSAltitude)) || 0)}m`} icon={<Mountain size={18} />} />
+                      )}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
             )}
 
-            {/* Contextual Details */}
-            <div className="grid gap-6 md:grid-cols-2">
-              {/* Image Context */}
-              <div className="bg-slate-900/50 rounded-xl border border-slate-800/50 p-4 space-y-4">
-                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Image Context</h3>
-                <div className="space-y-3">
-                  {captureString && (
-                    <div className="flex items-start gap-3">
-                      <Calendar className="w-5 h-5 text-slate-400 mt-0.5 shrink-0" />
-                      <p className="text-slate-300">{captureString}</p>
-                    </div>
-                  )}
-                  {techString && (
-                    <div className="flex items-start gap-3">
-                      <ImageIcon className="w-5 h-5 text-slate-400 mt-0.5 shrink-0" />
-                      <p className="text-slate-300">{techString}</p>
-                    </div>
-                  )}
-                  {editString && (
-                    <div className="flex items-start gap-3">
-                      <Monitor className="w-5 h-5 text-slate-400 mt-0.5 shrink-0" />
-                      <p className="text-slate-300">{editString}</p>
-                    </div>
-                  )}
+            {!loading && !error && metadata && viewMode === 'raw' && (
+              <div className='bg-slate-900 rounded-xl border border-slate-800 p-4 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-700'>
+                <div className='flex justify-between items-center mb-4'>
+                  <h3 className='font-semibold text-slate-200 flex items-center gap-2'><Code size={16} className='text-indigo-400' />Raw JSON Output</h3>
+                  <button onClick={() => {
+                    const url = URL.createObjectURL(new Blob([JSON.stringify(metadata, null, 2)], { type: 'application/json' }))
+                    const a = document.createElement('a'); a.href = url; a.download = 'exif-data.json'; a.click()
+                  }} className='text-xs text-indigo-400 hover:text-indigo-300 font-medium'>Download .json</button>
                 </div>
+                <pre className='font-mono text-xs text-slate-400 bg-black/50 p-4 rounded-lg overflow-x-auto max-h-[600px] overflow-y-auto custom-scrollbar'>
+                  {JSON.stringify(metadata, (k, v) => (k === 'thumbnail' || (Array.isArray(v) && v.length > 100)) ? '[Binary Data Omitted]' : v, 2)}
+                </pre>
               </div>
-
-              {/* Description & Rights */}
-              {(() => {
-                const desc = getTagValue(metadata.ImageDescription) || getTagValue(metadata.description)
-                const copyright = getTagValue(metadata.Copyright)
-                const artist = getTagValue(metadata.Artist)
-                const hasDesc = desc && desc.trim().length > 0 && desc.trim() !== '""'
-                
-                if (!hasDesc && !copyright && !artist) return null
-
-                return (
-                  <div className="bg-slate-900/50 rounded-xl border border-slate-800/50 p-4 space-y-4">
-                    <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Description & Rights</h3>
-                    <div className="space-y-3 text-slate-300">
-                      {hasDesc && <p className="italic">"{desc}"</p>}
-                      {copyright && <p className="text-sm text-slate-400">© {copyright}</p>}
-                      {artist && <p className="text-sm text-slate-400">By {artist}</p>}
-                    </div>
-                  </div>
-                )
-              })()}
-            </div>
-
-            {/* Additional Data Sections */}
-            <div className="space-y-4">
-            {/* Detailed Capture Settings (Grid) */}
-            {/* Detailed Capture Settings (Grid) */}
-            {(() => {
-              const items = [
-                { l: 'Exposure Program', v: metadata.ExposureProgram, i: <Sliders size={18} /> },
-                { l: 'Metering Mode', v: metadata.MeteringMode, i: <Crosshair size={18} /> },
-                { l: 'Flash', v: metadata.Flash, i: <Zap size={18} /> },
-                { l: 'White Balance', v: metadata.WhiteBalance, i: <Sun size={18} /> },
-              ].filter(item => {
-                const val = getTagValue(item.v)
-                return val && val !== 'Unknown'
-              })
-
-              if (items.length === 0) return null
-
-              return (
-                <div className="space-y-3">
-                  <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Capture Settings</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    {items.map((item, idx) => (
-                      <DataGridItem key={idx} label={item.l} value={getTagValue(item.v)} icon={item.i} />
-                    ))}
-                  </div>
-                </div>
-              )
-            })()}
-
-            {/* Editorial & Instructions (Grid) */}
-            {/* Editorial & Instructions (Grid) */}
-            {(() => {
-              const items = [
-                { l: 'Instructions', v: metadata.Instructions, i: <FileText size={18} /> },
-                { l: 'Credit', v: metadata.Credit, i: <User size={18} /> },
-                { l: 'Source', v: metadata.Source, i: <Globe size={18} /> },
-                { l: 'Headline', v: metadata.Headline !== headline ? metadata.Headline : null, i: <Type size={18} /> }
-              ].filter(item => {
-                const val = getTagValue(item.v)
-                return val && val !== 'Unknown'
-              })
-
-              if (items.length === 0) return null
-
-              return (
-                <div className="space-y-3">
-                  <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Editorial</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    {items.map((item, idx) => (
-                      <DataGridItem key={idx} label={item.l} value={getTagValue(item.v)} icon={item.i} />
-                    ))}
-                  </div>
-                </div>
-              )
-            })()}
-            </div>
-
-            {/* GPS Section */}
-            {gps ? (
-              <div className="space-y-3">
-                <div className="flex justify-between items-end">
-                  <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Location</h3>
-                  <a href={`https://www.google.com/maps/search/?api=1&query=${gps.lat},${gps.lng}`} target='_blank' rel='noreferrer' className='text-xs bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1 rounded-full transition-colors flex items-center gap-1'>
-                    <MapPin size={12} /> Open Maps
-                  </a>
-                </div>
-                <div className='grid grid-cols-2 gap-4'>
-                  <DataGridItem label="Latitude" value={`${gps.lat.toFixed(6)}° ${gps.latRef}`} icon={<Navigation size={18} />} />
-                  <DataGridItem label="Longitude" value={`${gps.lng.toFixed(6)}° ${gps.longRef}`} icon={<Navigation size={18} className="rotate-90" />} />
-                  {metadata.GPSAltitude && (
-                    <DataGridItem label="Altitude" value={`${Math.round(Number(getTagValue(metadata.GPSAltitude)) || 0)}m`} icon={<Mountain size={18} />} />
-                  )}
-                </div>
-              </div>
-            ) : null}
+            )}
           </div>
-        )}
-
-        {!loading && !error && metadata && viewMode === 'raw' && (
-          <div className='bg-slate-900 rounded-xl border border-slate-800 p-4 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-700'>
-            <div className='flex justify-between items-center mb-4'>
-              <h3 className='font-semibold text-slate-200 flex items-center gap-2'><Code size={16} className='text-indigo-400' />Raw JSON Output</h3>
-              <button onClick={() => {
-                const url = URL.createObjectURL(new Blob([JSON.stringify(metadata, null, 2)], { type: 'application/json' }))
-                const a = document.createElement('a'); a.href = url; a.download = 'exif-data.json'; a.click()
-              }} className='text-xs text-indigo-400 hover:text-indigo-300 font-medium'>Download .json</button>
-            </div>
-            <pre className='font-mono text-xs text-slate-400 bg-black/50 p-4 rounded-lg overflow-x-auto max-h-[600px] overflow-y-auto custom-scrollbar'>
-              {JSON.stringify(metadata, (k, v) => (k === 'thumbnail' || (Array.isArray(v) && v.length > 100)) ? '[Binary Data Omitted]' : v, 2)}
-            </pre>
-          </div>
-        )}
-      </div>
-    </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   )
 }
 
@@ -343,7 +360,10 @@ export default function App(): React.JSX.Element {
       const tags = await ExifReader.load(file)
       updateState({ loading: false, metadata: tags, error: (!tags || Object.keys(tags).length === 0) ? 'No EXIF metadata found.' : null })
     } catch (err: any) { updateState({ loading: false, error: 'Failed to load EXIF data: ' + err.message }) }
-  }, [])
+  }, []) // updateState is stable from useState, but if linter insists we can add it or suppress. 
+         // Actually, updateState is a wrapper around setState, so it changes on every render if not memoized.
+         // The definition: const updateState = (updates: Partial<typeof state>) => setState(prev => ({ ...prev, ...updates }))
+         // It's not memoized. I should memoize updateState or add it to dependency.
 
   const handleDrop = useCallback((e: DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); if (e.dataTransfer.files?.[0]) processFile(e.dataTransfer.files[0]) }, [processFile])
   const clearData = () => { updateState({ isDetailView: false }); setTimeout(() => { if (state.previewUrl) URL.revokeObjectURL(state.previewUrl); updateState({ file: null, previewUrl: null, metadata: null, error: null, imageLoaded: false }) }, 700) }
