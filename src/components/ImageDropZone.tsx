@@ -35,7 +35,7 @@ export const ImageDropZone: React.FC<ImageDropZoneProps> = ({
   }
 
   // Simplified className logic
-  const containerBaseClass = 'relative group rounded-2xl overflow-hidden bg-black shadow-2xl border transition-all duration-300 backdrop-blur-sm'
+  const containerBaseClass = 'relative group rounded-2xl overflow-hidden bg-black shadow-2xl border transition-all duration-300'
   const containerVariantClass = isDetailView 
     ? 'border-slate-800' 
     : 'border-slate-700 hover:border-teal-500/50 bg-slate-900/30 aspect-[4/3]'
@@ -89,7 +89,7 @@ export const ImageDropZone: React.FC<ImageDropZoneProps> = ({
 
             <button
               onClick={onClear}
-              className={`absolute top-4 right-4 p-2 bg-red-500/90 hover:bg-red-600 text-white rounded-full shadow-lg backdrop-blur-sm transition-all duration-500 ${isDetailView ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'}`}
+              className={`absolute top-4 right-4 p-2 bg-red-500/90 hover:bg-red-600 text-white rounded-full shadow-lg transition-all duration-500 ${isDetailView ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'}`}
               title="Remove image"
             >
               <Trash2 size={18} />
