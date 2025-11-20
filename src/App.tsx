@@ -14,7 +14,34 @@ const convertDMSToDD = (d: number, m: number, s: number, dir: string) => {
   return (dir === 'S' || dir === 'W') ? dd * -1 : dd
 }
 
-const getTagValue = (tag: any) => tag?.description || tag?.value?.toString() || tag?.toString() || null
+const formatDate = (dateString: any) => {
+  if (!dateString) return null
+  let dateStr = String(dateString).trim()
+  // Handle EXIF format "YYYY:MM:DD HH:MM:SS"
+  if (/^\d{4}:\d{2}:\d{2} \d{2}:\d{2}:\d{2}$/.test(dateStr)) {
+    const [d, t] = dateStr.split(' ')
+    dateStr = `${d.replace(/:/g, '-')}T${t}`
+  }
+  try {
+    const date = new Date(dateStr)
+    if (isNaN(date.getTime())) return dateString
+    return new Intl.DateTimeFormat('en-US', { 
+      year: 'numeric', month: 'short', day: 'numeric', 
+      hour: 'numeric', minute: 'numeric', hour12: true 
+    }).format(date)
+  } catch (e) { return dateString }
+}
+
+const getTagValue = (tag: any) => {
+  if (tag === null || tag === undefined) return null
+  if (typeof tag === 'string' || typeof tag === 'number') return String(tag)
+  if (typeof tag.description === 'string' && tag.description.trim().length > 0) return tag.description
+  if (Array.isArray(tag.value)) {
+    const parts = tag.value.filter((v: any) => typeof v === 'string' || typeof v === 'number')
+    return parts.length > 0 ? parts.join(', ') : null
+  }
+  return (typeof tag.value === 'string' || typeof tag.value === 'number') ? String(tag.value) : null
+}
 
 const getGPSData = (metadata: any): GPSData | null => {
   if (!metadata?.GPSLatitude || !metadata?.GPSLongitude) return null
@@ -89,21 +116,25 @@ const ImageDropZone = ({ file, previewUrl, onFileSelect, onDrop, onClear, imageL
       </div>
       {previewUrl && (
         <div className={`relative w-full h-full transition-all duration-700 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}>
+          {file && (
+            <div className="absolute top-4 left-4 z-10 bg-slate-900/70 backdrop-blur-sm px-3 py-1.5 rounded-full text-sm font-medium text-slate-200 max-w-[calc(100%-100px)] truncate" title={file.name}>
+              {file.name}
+            </div>
+          )}
           <img src={previewUrl} alt='Preview' onLoad={onImageLoad} className={`w-full h-full object-contain transition-all duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] ${isDetailView ? 'max-h-[600px] bg-black' : 'max-h-[60vh] bg-transparent'}`} />
           <button onClick={onClear} className={`absolute top-4 right-4 p-2 bg-red-500/90 hover:bg-red-600 text-white rounded-full shadow-lg backdrop-blur-sm transition-all duration-500 ${isDetailView ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'}`} title='Remove image'><Trash2 size={18} /></button>
         </div>
       )}
     </div>
     <div className={`mt-6 bg-slate-900 rounded-xl border border-slate-800 p-4 transition-all duration-700 delay-200 ${isDetailView && file ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 absolute pointer-events-none'}`}>
-      {file && <div className="grid grid-cols-3 gap-4 divide-x divide-slate-800/50">
+      {file && <div className="grid grid-cols-2 gap-4 divide-x divide-slate-800/50">
         {[
           { l: 'Size', v: `${(file.size / (1024 * 1024)).toFixed(2)} MB` },
           { l: 'Type', v: file.type.split('/')[1].toUpperCase() },
-          { l: 'Name', v: file.name.length > 15 ? file.name.substring(0, 12) + '...' : file.name, t: file.name }
         ].map((i, idx) => (
-          <div key={idx} className={`text-center ${idx === 1 ? 'px-2' : ''}`}>
+          <div key={idx} className={`text-center ${idx === 1 ? 'pl-2' : 'pr-2'}`}>
             <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">{i.l}</p>
-            <p className="text-slate-200 font-mono text-sm truncate max-w-full px-2" title={i.t}>{i.v}</p>
+            <p className={`text-slate-200 font-mono text-sm px-2 ${idx === 2 ? 'break-all' : 'truncate'}`} title={i.v}>{i.v}</p>
           </div>
         ))}
       </div>}
@@ -136,20 +167,60 @@ const MetadataViewer = ({ metadata, loading, error, viewMode, setViewMode, isDet
                 { i: <Camera size={18} />, l: 'Focal Length', v: getTagValue(metadata.FocalLength) || '—' }
               ].map((s, i) => <StatCard key={i} icon={s.i} label={s.l} value={s.v} />)}
             </div>
-            <DataSection title='Camera Equipment'>
-              {[
-                { l: 'Make', v: metadata.Make }, { l: 'Model', v: metadata.Model },
-                { l: 'Lens', v: metadata.LensModel || 'Unknown Lens' }, { l: 'Software', v: metadata.Software }
-              ].map((d, i) => <DataRow key={i} label={d.l} value={d.v} />)}
-            </DataSection>
-            <DataSection title='Capture Details'>
-              {[
-                { l: 'Date Taken', v: metadata.DateTimeOriginal || metadata.DateTime, i: <Calendar size={14} /> },
-                { l: 'Flash', v: metadata.Flash }, { l: 'Metering Mode', v: metadata.MeteringMode },
-                { l: 'White Balance', v: metadata.WhiteBalance },
-                { l: 'Dimensions', v: (metadata.PixelXDimension && metadata.PixelYDimension) ? `${getTagValue(metadata.PixelXDimension)} x ${getTagValue(metadata.PixelYDimension)} px` : null }
-              ].map((d, i) => <DataRow key={i} label={d.l} value={d.v} icon={d.i} />)}
-            </DataSection>
+
+            {[
+              {
+                title: 'Camera Equipment',
+                items: [
+                  { l: 'Make', v: metadata.Make }, { l: 'Model', v: metadata.Model },
+                  { l: 'Lens', v: metadata.LensModel }
+                ]
+              },
+              {
+                title: 'Image Details',
+                items: [
+                  { l: 'Headline', v: metadata.Headline },
+                  { l: 'Description', v: metadata.ImageDescription || metadata.description },
+                  { l: 'Artist', v: metadata.Artist || metadata.creator },
+                  { l: 'Credit', v: metadata.Credit },
+                  { l: 'Source', v: metadata.Source },
+                  { l: 'Copyright', v: metadata.Copyright || metadata.rights },
+                  { l: 'Instructions', v: metadata.Instructions }
+                ]
+              },
+              {
+                title: 'Capture Details',
+                items: [
+                  { l: 'Date Taken', v: formatDate(getTagValue(metadata.DateTimeOriginal) || getTagValue(metadata.DateTime)), i: <Calendar size={14} /> },
+                  { l: 'Exposure Program', v: metadata.ExposureProgram },
+                  { l: 'Flash', v: metadata.Flash }, { l: 'Metering Mode', v: metadata.MeteringMode },
+                  { l: 'White Balance', v: metadata.WhiteBalance },
+                  { l: 'Dimensions', v: (metadata.PixelXDimension && metadata.PixelYDimension) ? `${getTagValue(metadata.PixelXDimension)} x ${getTagValue(metadata.PixelYDimension)} px` : null }
+                ]
+              },
+              {
+                title: 'Software & History',
+                items: [
+                  { l: 'Software', v: metadata.Software },
+                  { l: 'Creator Tool', v: metadata.CreatorTool },
+                  { l: 'Created Date', v: formatDate(getTagValue(metadata.CreateDate)) },
+                  { l: 'Modified Date', v: formatDate(getTagValue(metadata.ModifyDate)) },
+                  { l: 'Metadata Date', v: formatDate(getTagValue(metadata.MetadataDate)) }
+                ]
+              }
+            ].map((section, idx) => {
+              const validItems = section.items.filter(item => {
+                const val = getTagValue(item.v)
+                return val !== null && val !== '' && val !== 'Unknown'
+              })
+              if (validItems.length === 0) return null
+              return (
+                <DataSection key={idx} title={section.title}>
+                  {validItems.map((d, i) => <DataRow key={i} label={d.l} value={d.v} icon={d.i} />)}
+                </DataSection>
+              )
+            })}
+
             {gps ? (
               <div className='bg-slate-900 rounded-xl border border-slate-800 overflow-hidden'>
                 <div className='p-4 border-b border-slate-800 flex justify-between items-center'>
