@@ -20,13 +20,6 @@ export default function App(): React.JSX.Element {
 
   const gps = useMemo(() => getGPSData(metadata), [metadata])
 
-  const handleFile = useCallback(
-    (file: File) => {
-      if (file) processFile(file)
-    },
-    [processFile]
-  )
-
   const loadTestImage = useCallback(() => {
     const load = async () => {
       try {
@@ -35,31 +28,31 @@ export default function App(): React.JSX.Element {
         if (!res.ok) throw new Error('Failed to load test image')
         const blob = await res.blob()
         const testFile = new File([blob], 'Canon_40D_photoshop_import.jpg', { type: 'image/jpeg' })
-        handleFile(testFile)
+        processFile(testFile)
       } catch (err: unknown) {
         console.error('Error loading test image:', err)
         setError(`Failed to load test image: ${getErrorMessage(err)}`)
       }
     }
     void load()
-  }, [handleFile, setError])
+  }, [processFile, setError])
 
   const handleDrop = useCallback(
     (e: DragEvent<HTMLDivElement>) => {
       e.preventDefault()
       e.stopPropagation()
       const file = e.dataTransfer.files?.[0]
-      if (file) handleFile(file)
+      if (file) processFile(file)
     },
-    [handleFile]
+    [processFile]
   )
 
   const handleFileSelect = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0]
-      if (file) handleFile(file)
+      if (file) processFile(file)
     },
-    [handleFile]
+    [processFile]
   )
 
   const handleImageLoad = useCallback(() => {

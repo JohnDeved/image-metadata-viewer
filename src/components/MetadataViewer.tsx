@@ -19,9 +19,11 @@ export const MetadataViewer: React.FC<MetadataViewerProps> = ({ gps }) => {
 
   if (!ready && !loading && !error) return null
 
-  const aiParameters = (['parameters', 'prompt', 'workflow'] as const)
-    .map(key => getTagValue(metadata?.[key]))
-    .find(Boolean)
+  // Get AI parameters from metadata
+  const aiParameters =
+    getTagValue(metadata?.parameters) ||
+    getTagValue(metadata?.prompt) ||
+    getTagValue(metadata?.workflow)
   const aiData = aiParameters ? parseAIParameters(aiParameters) : null
 
   return (

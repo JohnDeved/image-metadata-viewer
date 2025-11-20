@@ -28,6 +28,20 @@ const tryParseComfyUI = (raw: string): AIData | null => {
   }
 }
 
+const looksLikeSettings = (line: string): boolean =>
+  line.includes('Steps:') || line.includes('Model:')
+
+const extractSettingsLine = (text: string): { content: string; settings: string } => {
+  const lastNewLineIndex = text.lastIndexOf('\n')
+  if (lastNewLineIndex === -1) return { content: text, settings: '' }
+
+  const tail = text.substring(lastNewLineIndex + 1)
+  if (looksLikeSettings(tail)) {
+    return { content: text.substring(0, lastNewLineIndex).trim(), settings: tail.trim() }
+  }
+  return { content: text, settings: '' }
+}
+
 const tryParseA1111 = (raw: string): AIData | null => {
   try {
     const [promptPart, ...rest] = raw.split('Negative prompt:')
@@ -36,38 +50,21 @@ const tryParseA1111 = (raw: string): AIData | null => {
     let settingsLine = ''
 
     if (negativePrompt) {
-      const lastNewLineIndex = negativePrompt.lastIndexOf('\n')
-      if (lastNewLineIndex !== -1) {
-        const tail = negativePrompt.substring(lastNewLineIndex + 1)
-        if (looksLikeSettings(tail)) {
-          settingsLine = tail.trim()
-          negativePrompt = negativePrompt.substring(0, lastNewLineIndex).trim()
-        }
-      }
+      const result = extractSettingsLine(negativePrompt)
+      negativePrompt = result.content
+      settingsLine = result.settings
     } else {
-      const lastNewLineIndex = prompt.lastIndexOf('\n')
-      if (lastNewLineIndex !== -1) {
-        const tail = prompt.substring(lastNewLineIndex + 1)
-        if (looksLikeSettings(tail)) {
-          settingsLine = tail.trim()
-          prompt = prompt.substring(0, lastNewLineIndex).trim()
-        }
-      }
+      const result = extractSettingsLine(prompt)
+      prompt = result.content
+      settingsLine = result.settings
     }
 
-    return {
-      prompt,
-      negativePrompt,
-      settings: parseSettings(settingsLine),
-    }
+    return { prompt, negativePrompt, settings: parseSettings(settingsLine) }
   } catch (e) {
     console.error('Failed to parse AI parameters', e)
     return null
   }
 }
-
-const looksLikeSettings = (line: string): boolean =>
-  line.includes('Steps:') || line.includes('Model:')
 
 const parseSettings = (settingsStr: string): Record<string, string> => {
   if (!settingsStr) return {}

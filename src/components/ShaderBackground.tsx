@@ -5,8 +5,9 @@ import { MINT_SHADER_FRAGMENT } from '../utils/shaders'
 const isLowPowerMode = () => {
   if (typeof globalThis === 'undefined') return false
   if (globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return true
-  const conn = (globalThis.navigator as (Navigator & { connection?: { saveData?: boolean } }) | undefined)
-    ?.connection
+  const conn = (
+    globalThis.navigator as (Navigator & { connection?: { saveData?: boolean } }) | undefined
+  )?.connection
   if (conn?.saveData) return true
   const deviceMem = (globalThis.navigator as (Navigator & { deviceMemory?: number }) | undefined)
     ?.deviceMemory

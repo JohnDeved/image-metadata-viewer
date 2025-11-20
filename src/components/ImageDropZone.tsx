@@ -33,13 +33,6 @@ export const ImageDropZone: React.FC<ImageDropZoneProps> = ({
   const { file, previewUrl, isDetailView, metadata } = useStore()
   const headline = getHeadline(metadata, file)
 
-  // Simplified className logic
-  const containerBaseClass =
-    'relative group rounded-2xl overflow-hidden bg-black shadow-2xl border transition-all duration-300'
-  const containerVariantClass = isDetailView
-    ? 'border-slate-800'
-    : 'border-slate-700 hover:border-teal-500/50 bg-slate-900/30 aspect-[4/3]'
-
   return (
     <motion.div
       initial={false}
@@ -50,7 +43,11 @@ export const ImageDropZone: React.FC<ImageDropZoneProps> = ({
       <div
         onDragOver={handleDragOver}
         onDrop={onDrop}
-        className={`${containerBaseClass} ${containerVariantClass}`}
+        className={`relative group rounded-2xl overflow-hidden bg-black shadow-2xl border transition-all duration-300 ${
+          isDetailView
+            ? 'border-slate-800'
+            : 'border-slate-700 hover:border-teal-500/50 bg-slate-900/30 aspect-[4/3]'
+        }`}
       >
         {!file && (
           <input

@@ -43,50 +43,52 @@ interface FormattedMetadataViewProps {
   gps: GPSData | null
 }
 
+const ICON_SIZE = 18
+
 const buildGridSections = (metadata: ExifMetadata, headline: string | null) => [
   {
     title: 'Image Properties',
     items: [
-      { l: 'Image Width', v: metadata?.['Image Width'], i: <ImageIcon size={18} /> },
-      { l: 'Image Height', v: metadata?.['Image Height'], i: <ImageIcon size={18} /> },
-      { l: 'Bit Depth', v: metadata?.['Bit Depth'], i: <Palette size={18} /> },
-      { l: 'Color Type', v: metadata?.['Color Type'], i: <Palette size={18} /> },
-      { l: 'Compression', v: metadata?.Compression, i: <Sliders size={18} /> },
-      { l: 'Filter', v: metadata?.Filter, i: <Focus size={18} /> },
-      { l: 'Interlace', v: metadata?.Interlace, i: <Sliders size={18} /> },
+      { l: 'Image Width', v: metadata?.['Image Width'], i: <ImageIcon size={ICON_SIZE} /> },
+      { l: 'Image Height', v: metadata?.['Image Height'], i: <ImageIcon size={ICON_SIZE} /> },
+      { l: 'Bit Depth', v: metadata?.['Bit Depth'], i: <Palette size={ICON_SIZE} /> },
+      { l: 'Color Type', v: metadata?.['Color Type'], i: <Palette size={ICON_SIZE} /> },
+      { l: 'Compression', v: metadata?.Compression, i: <Sliders size={ICON_SIZE} /> },
+      { l: 'Filter', v: metadata?.Filter, i: <Focus size={ICON_SIZE} /> },
+      { l: 'Interlace', v: metadata?.Interlace, i: <Sliders size={ICON_SIZE} /> },
     ],
   },
   {
     title: 'Capture Settings',
     items: [
-      { l: 'Exposure Program', v: metadata?.ExposureProgram, i: <Sliders size={18} /> },
-      { l: 'Metering Mode', v: metadata?.MeteringMode, i: <Crosshair size={18} /> },
-      { l: 'Flash', v: metadata?.Flash, i: <Zap size={18} /> },
-      { l: 'White Balance', v: metadata?.WhiteBalance, i: <Sun size={18} /> },
+      { l: 'Exposure Program', v: metadata?.ExposureProgram, i: <Sliders size={ICON_SIZE} /> },
+      { l: 'Metering Mode', v: metadata?.MeteringMode, i: <Crosshair size={ICON_SIZE} /> },
+      { l: 'Flash', v: metadata?.Flash, i: <Zap size={ICON_SIZE} /> },
+      { l: 'White Balance', v: metadata?.WhiteBalance, i: <Sun size={ICON_SIZE} /> },
     ],
   },
   {
     title: 'Editorial',
     items: [
-      { l: 'Instructions', v: metadata?.Instructions, i: <FileText size={18} /> },
-      { l: 'Credit', v: metadata?.Credit, i: <User size={18} /> },
-      { l: 'Source', v: metadata?.Source, i: <Globe size={18} /> },
+      { l: 'Instructions', v: metadata?.Instructions, i: <FileText size={ICON_SIZE} /> },
+      { l: 'Credit', v: metadata?.Credit, i: <User size={ICON_SIZE} /> },
+      { l: 'Source', v: metadata?.Source, i: <Globe size={ICON_SIZE} /> },
       {
         l: 'Headline',
         v: getTagValue(metadata?.Headline) !== headline ? metadata?.Headline : null,
-        i: <Type size={18} />,
+        i: <Type size={ICON_SIZE} />,
       },
     ],
   },
   {
     title: 'Image Quality & Processing',
     items: [
-      { l: 'Color Space', v: metadata?.ColorSpace, i: <Palette size={18} /> },
-      { l: 'Contrast', v: metadata?.Contrast, i: <ContrastIcon size={18} /> },
-      { l: 'Saturation', v: metadata?.Saturation, i: <Sparkle size={18} /> },
-      { l: 'Sharpness', v: metadata?.Sharpness, i: <Focus size={18} /> },
-      { l: 'Scene Type', v: metadata?.SceneCaptureType, i: <Camera size={18} /> },
-      { l: 'Custom Rendered', v: metadata?.CustomRendered, i: <Sliders size={18} /> },
+      { l: 'Color Space', v: metadata?.ColorSpace, i: <Palette size={ICON_SIZE} /> },
+      { l: 'Contrast', v: metadata?.Contrast, i: <ContrastIcon size={ICON_SIZE} /> },
+      { l: 'Saturation', v: metadata?.Saturation, i: <Sparkle size={ICON_SIZE} /> },
+      { l: 'Sharpness', v: metadata?.Sharpness, i: <Focus size={ICON_SIZE} /> },
+      { l: 'Scene Type', v: metadata?.SceneCaptureType, i: <Camera size={ICON_SIZE} /> },
+      { l: 'Custom Rendered', v: metadata?.CustomRendered, i: <Sliders size={ICON_SIZE} /> },
     ],
   },
   {
@@ -95,24 +97,28 @@ const buildGridSections = (metadata: ExifMetadata, headline: string | null) => [
       {
         l: 'Camera Serial',
         v: metadata?.SerialNumber || metadata?.InternalSerialNumber,
-        i: <Camera size={18} />,
+        i: <Camera size={ICON_SIZE} />,
       },
-      { l: 'Lens Serial', v: metadata?.LensSerialNumber, i: <Aperture size={18} /> },
-      { l: '35mm Focal Length', v: metadata?.FocalLengthIn35mmFormat, i: <Focus size={18} /> },
-      { l: 'Sensing Method', v: metadata?.SensingMethod, i: <Crosshair size={18} /> },
-      { l: 'Owner Name', v: metadata?.OwnerName, i: <User size={18} /> },
-      { l: 'Lens Make', v: metadata?.LensMake, i: <Type size={18} /> },
+      { l: 'Lens Serial', v: metadata?.LensSerialNumber, i: <Aperture size={ICON_SIZE} /> },
+      {
+        l: '35mm Focal Length',
+        v: metadata?.FocalLengthIn35mmFormat,
+        i: <Focus size={ICON_SIZE} />,
+      },
+      { l: 'Sensing Method', v: metadata?.SensingMethod, i: <Crosshair size={ICON_SIZE} /> },
+      { l: 'Owner Name', v: metadata?.OwnerName, i: <User size={ICON_SIZE} /> },
+      { l: 'Lens Make', v: metadata?.LensMake, i: <Type size={ICON_SIZE} /> },
     ],
   },
   {
     title: 'Advanced Exposure',
     items: [
-      { l: 'Exposure Mode', v: metadata?.ExposureMode, i: <Sliders size={18} /> },
-      { l: 'Exposure Bias', v: metadata?.ExposureBiasValue, i: <Sun size={18} /> },
-      { l: 'Max Aperture', v: metadata?.MaxApertureValue, i: <Aperture size={18} /> },
-      { l: 'Subject Distance', v: metadata?.SubjectDistance, i: <Focus size={18} /> },
-      { l: 'Digital Zoom', v: metadata?.DigitalZoomRatio, i: <ImageIcon size={18} /> },
-      { l: 'Gain Control', v: metadata?.GainControl, i: <Zap size={18} /> },
+      { l: 'Exposure Mode', v: metadata?.ExposureMode, i: <Sliders size={ICON_SIZE} /> },
+      { l: 'Exposure Bias', v: metadata?.ExposureBiasValue, i: <Sun size={ICON_SIZE} /> },
+      { l: 'Max Aperture', v: metadata?.MaxApertureValue, i: <Aperture size={ICON_SIZE} /> },
+      { l: 'Subject Distance', v: metadata?.SubjectDistance, i: <Focus size={ICON_SIZE} /> },
+      { l: 'Digital Zoom', v: metadata?.DigitalZoomRatio, i: <ImageIcon size={ICON_SIZE} /> },
+      { l: 'Gain Control', v: metadata?.GainControl, i: <Zap size={ICON_SIZE} /> },
     ],
   },
 ]

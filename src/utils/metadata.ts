@@ -118,11 +118,8 @@ export const getGPSData = (metadata: ExifMetadata | null): GPSData | null => {
   }
 }
 
-export const getHeadline = (metadata: ExifMetadata | null, file: File | null): string => {
-  if (!metadata && !file) return 'Unknown Image'
-  const headline = metadata ? getTagValue(metadata.Headline) : null
-  return headline || file?.name || 'Unknown Image'
-}
+export const getHeadline = (metadata: ExifMetadata | null, file: File | null): string =>
+  getTagValue(metadata?.Headline) ?? file?.name ?? 'Unknown Image'
 
 // Calculate camera stats for display
 export const calculateCameraStats = (metadata: ExifMetadata | null) => {
@@ -167,38 +164,23 @@ export const getTechnicalSpecs = (metadata: ExifMetadata | null, file: File | nu
   return [dimensions, fileSize ? `${fileSize} ${fileType}` : null].filter(Boolean).join(' • ')
 }
 
-// Build capture date string
 export const getCaptureInfo = (metadata: ExifMetadata | null) => {
-  if (!metadata) return null
-
   const dateTaken = formatDate(
-    getTagValue(metadata.DateTimeOriginal) || getTagValue(metadata.DateTime)
+    getTagValue(metadata?.DateTimeOriginal) || getTagValue(metadata?.DateTime)
   )
   return dateTaken ? `Taken on ${dateTaken}` : null
 }
 
-// Build edit info string
 export const getEditInfo = (metadata: ExifMetadata | null) => {
-  if (!metadata) return null
-
-  const software = getTagValue(metadata.Software)
-  const editedDate = formatDate(getTagValue(metadata.ModifyDate))
-
+  const software = getTagValue(metadata?.Software)
+  const editedDate = formatDate(getTagValue(metadata?.ModifyDate))
   return software ? `Edited with ${software}${editedDate ? ` on ${editedDate}` : ''}` : null
 }
 
-// Get description and rights info
 export const getDescriptionInfo = (metadata: ExifMetadata | null) => {
-  if (!metadata) return { hasContent: false, description: null, copyright: null, artist: null }
-
   const desc = getTagValue(metadata?.ImageDescription) || getTagValue(metadata?.description)
   const copyright = getTagValue(metadata?.Copyright)
   const artist = getTagValue(metadata?.Artist)
-
-  return {
-    hasContent: !!desc || !!copyright || !!artist,
-    description: desc,
-    copyright,
-    artist,
-  }
+  const hasContent = !!desc || !!copyright || !!artist
+  return { hasContent, description: desc, copyright, artist }
 }

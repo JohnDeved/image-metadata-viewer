@@ -10,13 +10,8 @@ interface RawMetadataViewProps {
 
 export const RawMetadataView: React.FC<RawMetadataViewProps> = ({ metadata }) => {
   const formatted = useMemo(() => {
-    try {
-      const json = JSON.stringify(metadata, null, 2)
-      return json === '{}' ? 'No metadata found (empty object)' : json
-    } catch (e: unknown) {
-      const message = e instanceof Error ? e.message : String(e)
-      return `Error displaying JSON: ${message}`
-    }
+    const json = JSON.stringify(metadata, null, 2)
+    return json === '{}' ? 'No metadata found (empty object)' : json
   }, [metadata])
 
   return (
