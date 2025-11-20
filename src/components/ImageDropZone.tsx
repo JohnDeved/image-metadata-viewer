@@ -16,6 +16,14 @@ interface ImageDropZoneProps {
   metadata: ExifMetadata | null
 }
 
+// Motion configuration constants
+const PANEL_TRANSITION = { type: 'tween', ease: [0.25, 0.1, 0.25, 1], duration: 0.6 } as const
+const IMAGE_ANIMATION = {
+  initial: { clipPath: 'inset(15% 15% 15% 15% round 20px)', opacity: 0 },
+  animate: { clipPath: 'inset(0% 0% 0% 0% round 0px)', opacity: 1 },
+  transition: { type: 'spring', stiffness: 200, damping: 30, delay: 0.1 },
+} as const
+
 export const ImageDropZone: React.FC<ImageDropZoneProps> = ({
   file,
   previewUrl,
@@ -28,20 +36,28 @@ export const ImageDropZone: React.FC<ImageDropZoneProps> = ({
 }) => {
   const headline = getHeadline(metadata, file)
 
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+  }
+
+  // Simplified className logic
+  const containerBaseClass = 'relative group rounded-2xl overflow-hidden bg-black shadow-2xl border transition-all duration-300 backdrop-blur-sm'
+  const containerVariantClass = isDetailView 
+    ? 'border-slate-800' 
+    : 'border-slate-700 hover:border-teal-500/50 bg-slate-900/30 aspect-[4/3]'
+
   return (
     <motion.div
       initial={false}
       animate={{ width: isDetailView ? '40%' : '100%' }}
-      transition={{ type: 'tween', ease: [0.25, 0.1, 0.25, 1], duration: 0.6 }}
+      transition={PANEL_TRANSITION}
       className={`relative z-20 flex-shrink-0 ${isDetailView ? 'w-full lg:w-[40%]' : 'w-full'}`}
     >
       <div
-        onDragOver={e => {
-          e.preventDefault()
-          e.stopPropagation()
-        }}
+        onDragOver={handleDragOver}
         onDrop={onDrop}
-        className={`relative group rounded-2xl overflow-hidden bg-black shadow-2xl border transition-all duration-300 backdrop-blur-sm ${isDetailView ? 'border-slate-800' : 'border-slate-700 hover:border-teal-500/50 bg-slate-900/30 aspect-[4/3]'}`}
+        className={`${containerBaseClass} ${containerVariantClass}`}
       >
         {!file && (
           <input
@@ -61,12 +77,7 @@ export const ImageDropZone: React.FC<ImageDropZoneProps> = ({
           <p className="text-sm mt-1 text-slate-500">or click to browse (JPEG, TIFF)</p>
         </div>
         {previewUrl && (
-          <motion.div
-            initial={{ clipPath: 'inset(15% 15% 15% 15% round 20px)', opacity: 0 }}
-            animate={{ clipPath: 'inset(0% 0% 0% 0% round 0px)', opacity: 1 }}
-            transition={{ type: 'spring', stiffness: 200, damping: 30, delay: 0.1 }}
-            className="relative w-full h-full"
-          >
+          <motion.div {...IMAGE_ANIMATION} className="relative w-full h-full">
             <img
               src={previewUrl}
               alt="Preview"

@@ -44,71 +44,71 @@ export const formatDate = (dateString: unknown) => {
 export const getTagValue = (tag: unknown) => {
   if (tag === null || tag === undefined) return null
 
-  let value: string | null = null
-
+  // Handle primitives
   if (typeof tag === 'string' || typeof tag === 'number') {
-    value = String(tag)
-  } else if (typeof tag === 'object' && tag !== null) {
-    // Type guard for tag objects with value/description
-    const hasValue = 'value' in tag
-    const hasDescription = 'description' in tag
-
-    if (hasDescription && typeof (tag as { description: unknown }).description === 'string') {
-      const desc = (tag as { description: string }).description
-      if (desc.trim().length > 0) {
-        value = desc
-      }
-    }
-
-    if (!value && hasValue) {
-      const tagValue = (tag as { value: unknown }).value
-      if (Array.isArray(tagValue)) {
-        const parts = tagValue.filter(
-          (v: unknown) => typeof v === 'string' || typeof v === 'number'
-        )
-        value = parts.length > 0 ? parts.join(', ') : null
-      } else if (typeof tagValue === 'string' || typeof tagValue === 'number') {
-        value = String(tagValue)
-      }
-    }
+    const value = String(tag)
+    return value === 'Unknown' || value === '' || value === '""' ? null : value
   }
 
-  if (value === 'Unknown' || value === '' || value === '""') return null
-  return value
+  // Handle objects
+  if (typeof tag !== 'object') return null
+
+  // Try description first
+  if ('description' in tag && typeof (tag as { description: unknown }).description === 'string') {
+    const desc = (tag as { description: string }).description.trim()
+    if (desc && desc !== 'Unknown' && desc !== '""') return desc
+  }
+
+  // Try value property
+  if (!('value' in tag)) return null
+  
+  const tagValue = (tag as { value: unknown }).value
+  
+  // Handle array values
+  if (Array.isArray(tagValue)) {
+    const parts = tagValue.filter((v: unknown) => typeof v === 'string' || typeof v === 'number')
+    return parts.length > 0 ? parts.join(', ') : null
+  }
+  
+  // Handle primitive values
+  if (typeof tagValue === 'string' || typeof tagValue === 'number') {
+    const value = String(tagValue)
+    return value === 'Unknown' || value === '' || value === '""' ? null : value
+  }
+
+  return null
 }
 
-// Helper to extract GPS reference value from tag
-const extractRefValue = (tag: unknown, defaultValue: string): string => {
-  if (!tag || typeof tag !== 'object') return defaultValue
-  if ('value' in tag && Array.isArray(tag.value)) return tag.value[0] as string
-  if ('description' in tag) return tag.description as string
-  return defaultValue
-}
+
 
 export const getGPSData = (metadata: ExifMetadata | null): GPSData | null => {
   if (!metadata?.GPSLatitude || !metadata.GPSLongitude) return null
 
   try {
-    const latTag = metadata.GPSLatitude
-    const lngTag = metadata.GPSLongitude
+    // Extract GPS references (inline helper)
+    const getRef = (tag: unknown, defaultValue: string): string => {
+      if (!tag || typeof tag !== 'object') return defaultValue
+      if ('value' in tag && Array.isArray(tag.value)) return tag.value[0] as string
+      if ('description' in tag) return tag.description as string
+      return defaultValue
+    }
 
-    // Extract GPS references
-    const latRef = extractRefValue(metadata.GPSLatitudeRef, 'N')
-    const longRef = extractRefValue(metadata.GPSLongitudeRef, 'E')
+    const latRef = getRef(metadata.GPSLatitudeRef, 'N')
+    const longRef = getRef(metadata.GPSLongitudeRef, 'E')
 
     // Extract coordinate values
-    const latValue = latTag && typeof latTag === 'object' && 'value' in latTag ? latTag.value : null
-    const lngValue = lngTag && typeof lngTag === 'object' && 'value' in lngTag ? lngTag.value : null
+    const getCoordValue = (tag: unknown) => 
+      tag && typeof tag === 'object' && 'value' in tag ? tag.value : null
+
+    const latValue = getCoordValue(metadata.GPSLatitude)
+    const lngValue = getCoordValue(metadata.GPSLongitude)
 
     if (!Array.isArray(latValue) || latValue.length !== 3) return null
     if (!Array.isArray(lngValue) || lngValue.length !== 3) return null
 
-    const [latD, latM, latS] = latValue.map(parseRational)
-    const [lngD, lngM, lngS] = lngValue.map(parseRational)
-
     return {
-      lat: convertDMSToDD(latD, latM, latS, latRef),
-      lng: convertDMSToDD(lngD, lngM, lngS, longRef),
+      lat: convertDMSToDD(...latValue.map(parseRational) as [number, number, number], latRef),
+      lng: convertDMSToDD(...lngValue.map(parseRational) as [number, number, number], longRef),
       latRef,
       longRef,
     }

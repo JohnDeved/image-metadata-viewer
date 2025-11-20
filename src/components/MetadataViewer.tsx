@@ -1,5 +1,5 @@
 import React from 'react'
-import { motion, AnimatePresence, type Variants } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   Image as ImageIcon,
   MapPin,
@@ -18,7 +18,16 @@ import {
   Mountain,
   Code,
 } from 'lucide-react'
-import { getTagValue, formatDate, getHeadline, type GPSData } from '../utils/metadata'
+import { getTagValue, getHeadline, type GPSData } from '../utils/metadata'
+import {
+  calculateCameraStats,
+  getCameraInfo,
+  getTechnicalSpecs,
+  getCaptureInfo,
+  getEditInfo,
+  getDescriptionInfo,
+} from '../utils/metadataHelpers'
+import { itemVariants, containerVariants, rawViewVariants } from '../utils/animations'
 import type { ExifMetadata } from '../types/exif'
 import { DataGridItem } from './DataGridItem'
 import { MetadataSection } from './MetadataSection'
@@ -48,75 +57,12 @@ export const MetadataViewer: React.FC<MetadataViewerProps> = ({
   if (!metadata && !loading && !error) return null
 
   const headline = getHeadline(metadata, file)
-  const camera = metadata
-    ? [getTagValue(metadata.Make), getTagValue(metadata.Model)].filter(Boolean).join(' ')
-    : ''
-  const lens = metadata ? getTagValue(metadata.LensModel) : ''
-  const subtitle = [camera, lens].filter(Boolean).join(' • ')
-
-  const stats = metadata
-    ? [
-        {
-          l: 'Aperture',
-          v: getTagValue(metadata.FNumber) ? `f/${getTagValue(metadata.FNumber)}` : null,
-        },
-        {
-          l: 'Shutter',
-          v: getTagValue(metadata.ExposureTime) ? `${getTagValue(metadata.ExposureTime)}s` : null,
-        },
-        {
-          l: 'ISO',
-          v: getTagValue(metadata.ISOSpeedRatings)
-            ? `ISO ${getTagValue(metadata.ISOSpeedRatings)}`
-            : null,
-        },
-        { l: 'Focal Length', v: getTagValue(metadata.FocalLength) },
-      ].filter(s => s.v)
-    : []
-
-  const dimensions =
-    metadata && metadata.PixelXDimension && metadata.PixelYDimension
-      ? `${getTagValue(metadata.PixelXDimension)} x ${getTagValue(metadata.PixelYDimension)} px`
-      : null
-  const fileSize = file ? `${(file.size / (1024 * 1024)).toFixed(2)} MB` : null
-  const fileType = file ? file.type.split('/')[1].toUpperCase() : null
-  const techString = [dimensions, fileSize ? `${fileSize} ${fileType}` : null]
-    .filter(Boolean)
-    .join(' • ')
-
-  const dateTaken = metadata
-    ? formatDate(getTagValue(metadata.DateTimeOriginal) || getTagValue(metadata.DateTime))
-    : null
-  const captureString = dateTaken ? `Taken on ${dateTaken}` : null
-
-  const software = metadata ? getTagValue(metadata.Software) : null
-  const editedDate = metadata ? formatDate(getTagValue(metadata.ModifyDate)) : null
-  const editString = software
-    ? `Edited with ${software}${editedDate ? ` on ${editedDate}` : ''}`
-    : null
-
-  const formattedContainerVariants: Variants = {
-    hidden: { opacity: 0, x: -20 },
-    visible: {
-      opacity: 1,
-      x: 0,
-      transition: {
-        duration: 0.2,
-        when: 'beforeChildren',
-        staggerChildren: 0.05,
-      },
-    },
-    exit: {
-      opacity: 0,
-      x: 20,
-      transition: { duration: 0.2 },
-    },
-  }
-
-  const itemVariants: Variants = {
-    hidden: { opacity: 0, y: 10 },
-    visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 24 } },
-  }
+  const { camera, lens, subtitle } = getCameraInfo(metadata)
+  const stats = calculateCameraStats(metadata)
+  const techString = getTechnicalSpecs(metadata, file)
+  const captureString = getCaptureInfo(metadata)
+  const editString = getEditInfo(metadata)
+  const descInfo = getDescriptionInfo(metadata)
 
   return (
     <AnimatePresence mode="wait">
@@ -174,7 +120,7 @@ export const MetadataViewer: React.FC<MetadataViewerProps> = ({
               {!loading && !error && !!metadata && viewMode === 'formatted' && (
                 <motion.div
                   key="formatted"
-                  variants={formattedContainerVariants}
+                  variants={containerVariants}
                   initial="hidden"
                   animate="visible"
                   exit="exit"
@@ -250,44 +196,33 @@ export const MetadataViewer: React.FC<MetadataViewerProps> = ({
                     )}
 
                     {/* Description & Rights */}
-                    {(() => {
-                      const desc =
-                        getTagValue(metadata?.ImageDescription) ||
-                        getTagValue(metadata?.description)
-                      const copyright = getTagValue(metadata?.Copyright)
-                      const artist = getTagValue(metadata?.Artist)
-                      const hasDesc = desc && desc.trim().length > 0 && desc.trim() !== '""'
-
-                      if (!hasDesc && !copyright && !artist) return null
-
-                      return (
-                        <MetadataSection
-                          title="Description & Rights"
-                          icon={<FileText />}
-                          variants={itemVariants}
-                        >
-                          <div className="text-slate-300">
-                            {hasDesc && (
-                              <p className="italic text-sm leading-relaxed text-slate-400 border-l-2 border-slate-700 pl-3 py-1">
-                                "{desc}"
+                    {descInfo.hasContent && (
+                      <MetadataSection
+                        title="Description & Rights"
+                        icon={<FileText />}
+                        variants={itemVariants}
+                      >
+                        <div className="text-slate-300">
+                          {descInfo.description && (
+                            <p className="italic text-sm leading-relaxed text-slate-400 border-l-2 border-slate-700 pl-3 py-1">
+                              "{descInfo.description}"
+                            </p>
+                          )}
+                          <div className="flex flex-col gap-1 mt-2">
+                            {descInfo.copyright && (
+                              <p className="text-xs text-slate-500 font-medium flex items-center gap-1">
+                                <span className="text-slate-400">©</span> {descInfo.copyright}
                               </p>
                             )}
-                            <div className="flex flex-col gap-1 mt-2">
-                              {copyright && (
-                                <p className="text-xs text-slate-500 font-medium flex items-center gap-1">
-                                  <span className="text-slate-400">©</span> {copyright}
-                                </p>
-                              )}
-                              {artist && (
-                                <p className="text-xs text-slate-500 font-medium flex items-center gap-1">
-                                  <User size={12} /> {artist}
-                                </p>
-                              )}
-                            </div>
+                            {descInfo.artist && (
+                              <p className="text-xs text-slate-500 font-medium flex items-center gap-1">
+                                <User size={12} /> {descInfo.artist}
+                              </p>
+                            )}
                           </div>
-                        </MetadataSection>
-                      )
-                    })()}
+                        </div>
+                      </MetadataSection>
+                    )}
                   </div>
 
                   {/* Additional Data Sections */}
@@ -375,9 +310,10 @@ export const MetadataViewer: React.FC<MetadataViewerProps> = ({
               {!loading && !error && !!metadata && viewMode === 'raw' && (
                 <motion.div
                   key="raw"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
+                  variants={rawViewVariants}
+                  initial="initial"
+                  animate="animate"
+                  exit="exit"
                   transition={{ duration: 0.2 }}
                   className="bg-slate-900 rounded-xl border border-slate-800 p-4 overflow-hidden"
                 >
