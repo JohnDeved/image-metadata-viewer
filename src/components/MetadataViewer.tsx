@@ -7,7 +7,7 @@ import { RawMetadataView } from './RawMetadataView'
 import { FormattedMetadataView } from './FormattedMetadataView'
 import { AIMetadataSection } from './AIMetadataSection'
 import { useStore } from '../store'
-import { itemVariants, containerVariants } from '../utils/animations'
+import { containerVariants } from '../utils/animations'
 
 interface MetadataViewerProps {
   gps: GPSData | null
@@ -123,15 +123,11 @@ export const MetadataViewer: React.FC<MetadataViewerProps> = ({ gps }) => {
               )}
 
               {!loading && !error && !!metadata && viewMode === 'ai' && aiData && (
-                <motion.div
+                <AIMetadataSection
                   key="ai"
+                  aiData={aiData}
                   variants={containerVariants}
-                  initial="hidden"
-                  animate="visible"
-                  exit="exit"
-                >
-                  <AIMetadataSection aiData={aiData} variants={itemVariants} />
-                </motion.div>
+                />
               )}
             </AnimatePresence>
           </motion.div>

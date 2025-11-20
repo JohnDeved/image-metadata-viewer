@@ -91,13 +91,12 @@ export const FormattedMetadataView: React.FC<FormattedMetadataViewProps> = ({ me
       )}
 
       {/* Contextual Details */}
-      <div className="grid gap-6 md:grid-cols-2">
+      <motion.div variants={itemVariants} className="grid gap-6 md:grid-cols-2">
         {/* Image Context */}
         {(captureString || techString || editString) && (
           <MetadataSection
             title="Image Context"
             icon={<Monitor />}
-            variants={itemVariants}
           >
             {captureString && (
               <div className="flex items-start gap-3 group">
@@ -127,7 +126,6 @@ export const FormattedMetadataView: React.FC<FormattedMetadataViewProps> = ({ me
           <MetadataSection
             title="Description & Rights"
             icon={<FileText />}
-            variants={itemVariants}
           >
             <div className="text-slate-300">
               {descInfo.description && (
@@ -150,10 +148,10 @@ export const FormattedMetadataView: React.FC<FormattedMetadataViewProps> = ({ me
             </div>
           </MetadataSection>
         )}
-      </div>
+      </motion.div>
 
       {/* Additional Data Sections */}
-      <div className="space-y-4">
+      <motion.div variants={itemVariants} className="space-y-4">
         {/* Image Properties (Grid) */}
         <MetadataGrid
           title="Image Properties"
@@ -249,7 +247,7 @@ export const FormattedMetadataView: React.FC<FormattedMetadataViewProps> = ({ me
             { l: 'Gain Control', v: metadata?.GainControl, i: <Zap size={18} /> },
           ]}
         />
-      </div>
+      </motion.div>
 
       <GPSMetadataSection gps={gps} metadata={metadata} />
     </motion.div>
