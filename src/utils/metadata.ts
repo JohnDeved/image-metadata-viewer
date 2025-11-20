@@ -44,51 +44,40 @@ const isInvalidValue = (value: string) => !value || value === 'Unknown' || value
 
 export const getTagValue = (tag: unknown): string | null => {
   if (tag === null || tag === undefined) return null
-
-  if (typeof tag === 'string' || typeof tag === 'number') {
+  if (typeof tag !== 'object') {
     const val = String(tag)
     return isInvalidValue(val) ? null : val
   }
 
-  if (typeof tag !== 'object') return null
+  // Extract description or value from object
+  const objTag = tag as { description?: unknown; value?: unknown }
+  const rawValue = objTag.description ?? objTag.value
 
-  // Check for description
-  if ('description' in tag) {
-    const desc = (tag as { description: unknown }).description
-    if (typeof desc === 'string') {
-      const trimmed = desc.trim()
-      return isInvalidValue(trimmed) ? null : trimmed
-    }
+  if (rawValue === undefined) return null
+
+  // Handle array values
+  if (Array.isArray(rawValue)) {
+    const parts = rawValue.filter(v => typeof v === 'string' || typeof v === 'number')
+    return parts.length > 0 ? parts.join(', ') : null
   }
 
-  // Check for value
-  if ('value' in tag) {
-    const val = (tag as { value: unknown }).value
-    if (Array.isArray(val)) {
-      const parts = val.filter(v => typeof v === 'string' || typeof v === 'number')
-      return parts.length > 0 ? parts.join(', ') : null
-    }
-    if (typeof val === 'string' || typeof val === 'number') {
-      const strVal = String(val)
-      return isInvalidValue(strVal) ? null : strVal
-    }
-  }
-
-  return null
+  // Handle string/number values
+  const strVal = String(rawValue).trim()
+  return isInvalidValue(strVal) ? null : strVal
 }
 
+// Extract reference directions (N/S/E/W) from GPS metadata
 const getRef = (tag: unknown, defaultRef: string): string => {
   if (!tag || typeof tag !== 'object') return defaultRef
-  if ('value' in tag && Array.isArray(tag.value) && tag.value[0]) return String(tag.value[0])
-  if ('description' in tag && tag.description) return String(tag.description)
+  const objTag = tag as { value?: unknown[]; description?: string }
+  if (objTag.value?.[0]) return String(objTag.value[0])
+  if (objTag.description) return String(objTag.description)
   return defaultRef
 }
 
+// Extract coordinate values from GPS metadata
 const getCoords = (tag: unknown) => {
-  if (tag && typeof tag === 'object' && 'value' in tag) {
-    return (tag as { value: unknown }).value
-  }
-  return null
+  return tag && typeof tag === 'object' && 'value' in tag ? (tag as { value: unknown }).value : null
 }
 
 export const getGPSData = (metadata: ExifMetadata | null): GPSData | null => {
@@ -97,7 +86,6 @@ export const getGPSData = (metadata: ExifMetadata | null): GPSData | null => {
   try {
     const latRef = getRef(metadata.GPSLatitudeRef, 'N')
     const longRef = getRef(metadata.GPSLongitudeRef, 'E')
-
     const latValue = getCoords(metadata.GPSLatitude)
     const lngValue = getCoords(metadata.GPSLongitude)
 
@@ -126,16 +114,16 @@ export const calculateCameraStats = (metadata: ExifMetadata | null) => {
   if (!metadata) return []
 
   const stats = [
-    { l: 'Aperture', v: metadata.FNumber, format: (v: string) => `f/${v}` },
-    { l: 'Shutter', v: metadata.ExposureTime, format: (v: string) => `${v}s` },
-    { l: 'ISO', v: metadata.ISOSpeedRatings, format: (v: string) => `ISO ${v}` },
-    { l: 'Focal Length', v: metadata.FocalLength, format: (v: string) => v },
+    { l: 'Aperture', v: metadata.FNumber, fmt: (v: string) => `f/${v}` },
+    { l: 'Shutter', v: metadata.ExposureTime, fmt: (v: string) => `${v}s` },
+    { l: 'ISO', v: metadata.ISOSpeedRatings, fmt: (v: string) => `ISO ${v}` },
+    { l: 'Focal Length', v: metadata.FocalLength, fmt: (v: string) => v },
   ]
 
   return stats
-    .map(({ l, v, format }) => {
+    .map(({ l, v, fmt }) => {
       const value = getTagValue(v)
-      return value ? { l, v: format(value) } : null
+      return value ? { l, v: fmt(value) } : null
     })
     .filter((s): s is { l: string; v: string } => s !== null)
 }

@@ -2,6 +2,9 @@ import { create } from 'zustand'
 import ExifReader, { type Tags as ExifMetadata } from 'exifreader'
 import { getErrorMessage } from './utils/errors'
 
+const ERROR_INVALID_FILE_TYPE = 'Please select a valid image file (JPEG, PNG, TIFF).'
+const ERROR_NO_METADATA = 'No EXIF metadata found.'
+
 interface AppState {
   file: File | null
   previewUrl: string | null
@@ -59,7 +62,7 @@ export const useStore = create<Store>((set, get) => ({
 
   processFile: async (fileToProcess: File) => {
     if (!fileToProcess.type.startsWith('image/')) {
-      set({ error: 'Please select a valid image file (JPEG, PNG, TIFF).' })
+      set({ error: ERROR_INVALID_FILE_TYPE })
       return
     }
 
@@ -73,14 +76,13 @@ export const useStore = create<Store>((set, get) => ({
 
     try {
       const tags = await ExifReader.load(fileToProcess)
-
-      // Check for AI metadata to determine default view
-      const hasAIData = tags && (tags.parameters || tags.prompt || tags.workflow)
+      const hasAIData = !!(tags?.parameters || tags?.prompt || tags?.workflow)
+      const hasMetadata = tags && Object.keys(tags).length > 0
 
       set({
         loading: false,
         metadata: tags,
-        error: !tags || Object.keys(tags).length === 0 ? 'No EXIF metadata found.' : null,
+        error: hasMetadata ? null : ERROR_NO_METADATA,
         viewMode: hasAIData ? 'ai' : 'formatted',
       })
     } catch (err: unknown) {

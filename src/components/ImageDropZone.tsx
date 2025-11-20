@@ -24,6 +24,22 @@ const handleDragOver: React.DragEventHandler<HTMLDivElement> = e => {
   e.stopPropagation()
 }
 
+// Build dynamic class names for container
+const getContainerClassName = (isDetailView: boolean) => {
+  const baseClasses = 'relative group rounded-2xl overflow-hidden bg-black shadow-2xl border transition-all duration-300'
+  const stateClasses = isDetailView
+    ? 'border-slate-800'
+    : 'border-slate-700 hover:border-teal-500/50 bg-slate-900/30 aspect-[4/3]'
+  return `${baseClasses} ${stateClasses}`
+}
+
+// Build dynamic class names for placeholder
+const getPlaceholderClassName = (hasPreview: boolean) => {
+  const baseClasses = 'absolute inset-0 flex flex-col items-center justify-center text-slate-400 transition-all duration-500'
+  const visibilityClasses = hasPreview ? 'opacity-0 scale-90' : 'opacity-100 scale-100'
+  return `${baseClasses} ${visibilityClasses}`
+}
+
 export const ImageDropZone: React.FC<ImageDropZoneProps> = ({
   onFileSelect,
   onDrop,
@@ -43,11 +59,7 @@ export const ImageDropZone: React.FC<ImageDropZoneProps> = ({
       <div
         onDragOver={handleDragOver}
         onDrop={onDrop}
-        className={`relative group rounded-2xl overflow-hidden bg-black shadow-2xl border transition-all duration-300 ${
-          isDetailView
-            ? 'border-slate-800'
-            : 'border-slate-700 hover:border-teal-500/50 bg-slate-900/30 aspect-[4/3]'
-        }`}
+        className={getContainerClassName(isDetailView)}
       >
         {!file && (
           <input
@@ -57,9 +69,7 @@ export const ImageDropZone: React.FC<ImageDropZoneProps> = ({
             accept="image/*"
           />
         )}
-        <div
-          className={`absolute inset-0 flex flex-col items-center justify-center text-slate-400 transition-all duration-500 ${previewUrl ? 'opacity-0 scale-90' : 'opacity-100 scale-100'}`}
-        >
+        <div className={getPlaceholderClassName(!!previewUrl)}>
           <div className="p-4 bg-slate-800 rounded-full mb-4 shadow-xl group-hover:scale-110 transition-transform duration-300">
             <Upload size={48} strokeWidth={1.5} />
           </div>

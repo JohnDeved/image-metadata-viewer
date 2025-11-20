@@ -1,9 +1,22 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { motion, type Variants } from 'framer-motion'
 import { Terminal, Settings, Copy, Check } from 'lucide-react'
 import { type AIData } from '../utils/aiMetadata'
 import { MetadataGrid } from './MetadataGrid'
 import { itemVariants } from '../utils/animations'
+
+// Custom hook for copy-to-clipboard functionality
+const useCopyToClipboard = () => {
+  const [copiedField, setCopiedField] = useState<string | null>(null)
+
+  const copy = (text: string, field: string) => {
+    navigator.clipboard.writeText(text)
+    setCopiedField(field)
+    setTimeout(() => setCopiedField(null), 2000)
+  }
+
+  return { copiedField, copy }
+}
 
 interface AIMetadataSectionProps {
   aiData: AIData
@@ -57,13 +70,7 @@ const PromptSection: React.FC<PromptSectionProps> = ({
 )
 
 export const AIMetadataSection: React.FC<AIMetadataSectionProps> = ({ aiData, variants }) => {
-  const [copiedField, setCopiedField] = React.useState<string | null>(null)
-
-  const copyToClipboard = (text: string, field: string) => {
-    navigator.clipboard.writeText(text)
-    setCopiedField(field)
-    setTimeout(() => setCopiedField(null), 2000)
-  }
+  const { copiedField, copy } = useCopyToClipboard()
 
   // Convert settings object to GridItems
   const settingItems = Object.entries(aiData.settings).map(([key, value]) => ({
@@ -86,7 +93,7 @@ export const AIMetadataSection: React.FC<AIMetadataSectionProps> = ({ aiData, va
           content={aiData.prompt}
           field="prompt"
           copiedField={copiedField}
-          onCopy={copyToClipboard}
+          onCopy={copy}
         />
       )}
 
@@ -96,7 +103,7 @@ export const AIMetadataSection: React.FC<AIMetadataSectionProps> = ({ aiData, va
           content={aiData.negativePrompt}
           field="negative"
           copiedField={copiedField}
-          onCopy={copyToClipboard}
+          onCopy={copy}
           negative
         />
       )}

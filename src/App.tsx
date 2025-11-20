@@ -60,8 +60,18 @@ export default function App(): React.JSX.Element {
     setTimeout(() => setIsDetailView(true), 400)
   }, [setImageLoaded, setIsDetailView])
 
-  const mainClassName = `mx-auto px-4 py-8 transition-all duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] ${isDetailView ? 'max-w-7xl' : 'max-w-2xl'}`
-  const contentClassName = `transform transition-transform duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] ${isDetailView ? 'translate-y-0' : 'translate-y-[15vh]'}`
+  // Dynamic class names based on detail view state
+  const mainClassName = [
+    'mx-auto px-4 py-8 transition-all duration-1000',
+    'ease-[cubic-bezier(0.22,1,0.36,1)]',
+    isDetailView ? 'max-w-7xl' : 'max-w-2xl',
+  ].join(' ')
+
+  const contentClassName = [
+    'transform transition-transform duration-1000',
+    'ease-[cubic-bezier(0.22,1,0.36,1)]',
+    isDetailView ? 'translate-y-0' : 'translate-y-[15vh]',
+  ].join(' ')
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-teal-500/30 overflow-x-hidden relative">

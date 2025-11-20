@@ -28,15 +28,15 @@ const tryParseComfyUI = (raw: string): AIData | null => {
   }
 }
 
-const looksLikeSettings = (line: string): boolean =>
-  line.includes('Steps:') || line.includes('Model:')
-
 const extractSettingsLine = (text: string): { content: string; settings: string } => {
   const lastNewLineIndex = text.lastIndexOf('\n')
   if (lastNewLineIndex === -1) return { content: text, settings: '' }
 
   const tail = text.substring(lastNewLineIndex + 1)
-  if (looksLikeSettings(tail)) {
+  // Check if last line looks like settings (contains typical AI params)
+  const hasSettingsPattern = tail.includes('Steps:') || tail.includes('Model:')
+
+  if (hasSettingsPattern) {
     return { content: text.substring(0, lastNewLineIndex).trim(), settings: tail.trim() }
   }
   return { content: text, settings: '' }
@@ -68,13 +68,12 @@ const tryParseA1111 = (raw: string): AIData | null => {
 
 const parseSettings = (settingsStr: string): Record<string, string> => {
   if (!settingsStr) return {}
+
   return settingsStr.split(', ').reduce<Record<string, string>>((acc, item) => {
     const colonIndex = item.indexOf(':')
-    if (colonIndex !== -1) {
-      const key = item.substring(0, colonIndex).trim()
-      const value = item.substring(colonIndex + 1).trim()
-      acc[key] = value
-    }
+    if (colonIndex === -1) return acc
+
+    acc[item.substring(0, colonIndex).trim()] = item.substring(colonIndex + 1).trim()
     return acc
   }, {})
 }
