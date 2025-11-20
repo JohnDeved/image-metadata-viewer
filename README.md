@@ -1,19 +1,22 @@
-# Image Metadata Viewer 📸
+# Image Metadata Viewer 🖼️✨
 
-A beautiful, modern web application for extracting and viewing EXIF metadata from your images. Built with React, TypeScript, and a focus on privacy and performance.
+A web application for extracting and viewing comprehensive metadata from your images. Features AI-generated image detection, interactive WebGL shader effects, GPS mapping, and complete EXIF data analysis. Built with React, TypeScript, and a focus on privacy and performance.
 
 ![Image Metadata Viewer](https://img.shields.io/badge/React-19-61dafb?logo=react) ![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178c6?logo=typescript) ![Vite](https://img.shields.io/badge/Vite-7-646cff?logo=vite) ![TailwindCSS](https://img.shields.io/badge/Tailwind-4-38bdf8?logo=tailwindcss)
 
 ## ✨ Features
 
-- **📊 Comprehensive Metadata Display** - View all EXIF data from your images including camera settings, GPS location, timestamps, and technical details
-- **🎨 Beautiful UI** - Modern, responsive interface with smooth animations powered by Framer Motion
+- **🤖 AI Image Detection** - Automatically detect and display metadata from AI-generated images (Stable Diffusion, DALL-E, Midjourney, etc.)
+- **🎨 Interactive WebGL Background** - Shader effects that react to mouse movement and UI interactions
+- **📊 Comprehensive Metadata Display** - View all EXIF data including camera settings, GPS location, timestamps, and technical details
+- **🌍 GPS Mapping** - Parse and display geographic coordinates with hemisphere indicators
+- **🎭 Animated UI** - Responsive interface with smooth Framer Motion animations
 - **🔒 Privacy-First** - All processing happens client-side in your browser - your images never leave your device
 - **🎯 Dual View Modes** - Toggle between formatted (human-readable) and raw (technical) metadata views
 - **📱 Responsive Design** - Works seamlessly on desktop, tablet, and mobile devices
 - **🖼️ Format Support** - Compatible with JPEG, PNG, TIFF, and other common image formats
-- **⚡ Fast & Lightweight** - Built with Vite and optimized for performance
-- **🎨 Mint Theme** - Clean, modern design with a refreshing mint color palette
+- **⚡ Fast & Lightweight** - Built with Vite and optimized for performance with Zustand state management
+- **🎨 Mint Theme** - Clean, modern design with a refreshing mint color palette and dark mode
 
 ## 🚀 Quick Start
 
@@ -49,23 +52,28 @@ npm run dev
 - **[Vite](https://vite.dev/)** - Next-generation frontend build tool (using Rolldown)
 - **[Tailwind CSS](https://tailwindcss.com/)** - Utility-first CSS framework
 - **[Framer Motion](https://www.framer.com/motion/)** - Production-ready animation library
+- **[Zustand](https://zustand-demo.pmnd.rs/)** - Lightweight state management solution
 - **[ExifReader](https://github.com/mattiasw/ExifReader)** - Fast and comprehensive EXIF reader
-- **[Lucide React](https://lucide.dev/)** - Beautiful icon library
+- **[Lucide React](https://lucide.dev/)** - Icon library
+- **WebGL** - Hardware-accelerated shader effects
 
 ## 📖 Usage
 
 1. **Upload an Image**
    - Drag and drop an image onto the drop zone
    - Or click to browse and select a file from your device
+   - Enjoy the interactive WebGL shader background that reacts to your movements
 
 2. **View Metadata**
    - Once loaded, the metadata will be displayed in an organized, easy-to-read format
    - Use the toggle button to switch between formatted and raw views
+   - AI-generated images will show an additional "AI Data" tab with generation parameters
 
 3. **Explore Details**
    - View camera settings (ISO, aperture, shutter speed, focal length)
-   - See GPS coordinates if available
+   - See GPS coordinates with parsed latitude/longitude if available
    - Check timestamps and file information
+   - Access AI generation parameters (prompts, models, settings) from supported tools
    - Access all technical EXIF data
 
 4. **Clear & Start Over**
@@ -78,12 +86,24 @@ image-metadata-viewer/
 ├── public/              # Static assets
 ├── src/
 │   ├── components/      # React components
-│   │   ├── Header.tsx              # App header with branding
-│   │   ├── ImageDropZone.tsx       # File upload interface
-│   │   ├── MetadataViewer.tsx      # Main metadata display
-│   │   └── DataGridItem.tsx        # Individual metadata items
+│   │   ├── Header.tsx                # App header with branding
+│   │   ├── ImageDropZone.tsx         # File upload interface with WebGL background
+│   │   ├── ShaderBackground.tsx      # Interactive WebGL shader component
+│   │   ├── MetadataViewer.tsx        # Main metadata display
+│   │   ├── FormattedMetadataView.tsx # Human-readable metadata view
+│   │   ├── RawMetadataView.tsx       # Technical raw data view
+│   │   ├── AIMetadataSection.tsx     # AI-generated image metadata
+│   │   ├── GPSMetadataSection.tsx    # GPS coordinate display
+│   │   ├── MetadataSection.tsx       # Reusable section component
+│   │   ├── MetadataGrid.tsx          # Grid layout for metadata
+│   │   ├── DataGridItem.tsx          # Individual metadata items
+│   │   └── StatCard.tsx              # Statistic card component
 │   ├── utils/           # Utility functions
-│   │   └── metadata.ts             # Metadata processing utilities
+│   │   ├── metadata.ts               # Metadata processing utilities
+│   │   ├── metadataHelpers.ts        # Helper functions for formatting
+│   │   ├── shaders.ts                # WebGL shader code
+│   │   └── errors.ts                 # Error handling utilities
+│   ├── store.ts         # Zustand state management
 │   ├── App.tsx          # Main application component
 │   ├── main.tsx         # Application entry point
 │   └── index.css        # Global styles

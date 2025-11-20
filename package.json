@@ -3,6 +3,8 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "description": "Privacy-focused image metadata viewer with AI-generated image detection, interactive WebGL visualizations, GPS mapping, and comprehensive EXIF data analysis",
+  "keywords": ["exif", "metadata", "image-viewer", "ai-detection", "webgl", "react", "typescript", "privacy"],
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
