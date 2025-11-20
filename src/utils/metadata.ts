@@ -77,60 +77,41 @@ export const getTagValue = (tag: unknown) => {
   return value
 }
 
+// Helper to extract GPS reference value from tag
+const extractRefValue = (tag: unknown, defaultValue: string): string => {
+  if (!tag || typeof tag !== 'object') return defaultValue
+  if ('value' in tag && Array.isArray(tag.value)) return tag.value[0] as string
+  if ('description' in tag) return tag.description as string
+  return defaultValue
+}
+
 export const getGPSData = (metadata: ExifMetadata | null): GPSData | null => {
-  if (!metadata) return null
-  if (!metadata.GPSLatitude || !metadata.GPSLongitude) return null
+  if (!metadata?.GPSLatitude || !metadata.GPSLongitude) return null
 
   try {
     const latTag = metadata.GPSLatitude
     const lngTag = metadata.GPSLongitude
-    const latRefTag = metadata.GPSLatitudeRef
-    const longRefTag = metadata.GPSLongitudeRef
+    
+    // Extract GPS references
+    const latRef = extractRefValue(metadata.GPSLatitudeRef, 'N')
+    const longRef = extractRefValue(metadata.GPSLongitudeRef, 'E')
 
-    // Extract latitude and longitude references
-    const latRef =
-      (latRefTag &&
-      typeof latRefTag === 'object' &&
-      'value' in latRefTag &&
-      Array.isArray(latRefTag.value)
-        ? latRefTag.value[0]
-        : null) ||
-      (latRefTag && typeof latRefTag === 'object' && 'description' in latRefTag
-        ? latRefTag.description
-        : null) ||
-      'N'
-    const longRef =
-      (longRefTag &&
-      typeof longRefTag === 'object' &&
-      'value' in longRefTag &&
-      Array.isArray(longRefTag.value)
-        ? longRefTag.value[0]
-        : null) ||
-      (longRefTag && typeof longRefTag === 'object' && 'description' in longRefTag
-        ? longRefTag.description
-        : null) ||
-      'E'
-
-    // Check if lat/lng tags have the expected value structure
+    // Extract coordinate values
     const latValue = latTag && typeof latTag === 'object' && 'value' in latTag ? latTag.value : null
     const lngValue = lngTag && typeof lngTag === 'object' && 'value' in lngTag ? lngTag.value : null
 
-    if (
-      Array.isArray(latValue) &&
-      latValue.length === 3 &&
-      Array.isArray(lngValue) &&
-      lngValue.length === 3
-    ) {
-      const [latD, latM, latS] = latValue.map(parseRational)
-      const [lngD, lngM, lngS] = lngValue.map(parseRational)
-      return {
-        lat: convertDMSToDD(latD, latM, latS, String(latRef)),
-        lng: convertDMSToDD(lngD, lngM, lngS, String(longRef)),
-        latRef: String(latRef),
-        longRef: String(longRef),
-      }
+    if (!Array.isArray(latValue) || latValue.length !== 3) return null
+    if (!Array.isArray(lngValue) || lngValue.length !== 3) return null
+
+    const [latD, latM, latS] = latValue.map(parseRational)
+    const [lngD, lngM, lngS] = lngValue.map(parseRational)
+
+    return {
+      lat: convertDMSToDD(latD, latM, latS, latRef),
+      lng: convertDMSToDD(lngD, lngM, lngS, longRef),
+      latRef,
+      longRef,
     }
-    return null
   } catch {
     return null
   }

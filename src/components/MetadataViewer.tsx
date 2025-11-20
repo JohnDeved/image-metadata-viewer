@@ -21,6 +21,8 @@ import {
 import { getTagValue, formatDate, type GPSData } from '../utils/metadata'
 import type { ExifMetadata } from '../types/exif'
 import { DataGridItem } from './DataGridItem'
+import { MetadataSection } from './MetadataSection'
+import { MetadataGrid } from './MetadataGrid'
 
 interface MetadataViewerProps {
   metadata: ExifMetadata | null
@@ -220,14 +222,8 @@ export const MetadataViewer: React.FC<MetadataViewerProps> = ({
                   {/* Contextual Details */}
                   <div className="grid gap-6 md:grid-cols-2">
                     {/* Image Context */}
-                    <motion.div
-                      variants={itemVariants}
-                      className="bg-slate-900/40 rounded-xl border border-slate-800/60 p-5 space-y-4 hover:border-slate-700 transition-colors"
-                    >
-                      <h3 className="text-xs font-bold text-teal-500/70 uppercase tracking-widest flex items-center gap-2">
-                        <Monitor size={14} /> Image Context
-                      </h3>
-                      <div className="space-y-3">
+                    {(captureString || techString || editString) && (
+                      <MetadataSection title="Image Context" icon={<Monitor />} variants={itemVariants}>
                         {captureString && (
                           <div className="flex items-start gap-3 group">
                             <Calendar className="w-4 h-4 text-slate-500 mt-1 shrink-0 group-hover:text-teal-400 transition-colors" />
@@ -248,8 +244,8 @@ export const MetadataViewer: React.FC<MetadataViewerProps> = ({
                             <p className="text-slate-300 text-sm leading-relaxed">{editString}</p>
                           </div>
                         )}
-                      </div>
-                    </motion.div>
+                      </MetadataSection>
+                    )}
 
                     {/* Description & Rights */}
                     {(() => {
@@ -263,14 +259,12 @@ export const MetadataViewer: React.FC<MetadataViewerProps> = ({
                       if (!hasDesc && !copyright && !artist) return null
 
                       return (
-                        <motion.div
+                        <MetadataSection
+                          title="Description & Rights"
+                          icon={<FileText />}
                           variants={itemVariants}
-                          className="bg-slate-900/40 rounded-xl border border-slate-800/60 p-5 space-y-4 hover:border-slate-700 transition-colors"
                         >
-                          <h3 className="text-xs font-bold text-teal-500/70 uppercase tracking-widest flex items-center gap-2">
-                            <FileText size={14} /> Description & Rights
-                          </h3>
-                          <div className="space-y-3 text-slate-300">
+                          <div className="text-slate-300">
                             {hasDesc && (
                               <p className="italic text-sm leading-relaxed text-slate-400 border-l-2 border-slate-700 pl-3 py-1">
                                 "{desc}"
@@ -289,7 +283,7 @@ export const MetadataViewer: React.FC<MetadataViewerProps> = ({
                               )}
                             </div>
                           </div>
-                        </motion.div>
+                        </MetadataSection>
                       )
                     })()}
                   </div>
@@ -297,8 +291,10 @@ export const MetadataViewer: React.FC<MetadataViewerProps> = ({
                   {/* Additional Data Sections */}
                   <div className="space-y-4">
                     {/* Detailed Capture Settings (Grid) */}
-                    {(() => {
-                      const items = [
+                    <MetadataGrid
+                      title="Capture Settings"
+                      variants={itemVariants}
+                      items={[
                         {
                           l: 'Exposure Program',
                           v: metadata?.ExposureProgram,
@@ -311,35 +307,14 @@ export const MetadataViewer: React.FC<MetadataViewerProps> = ({
                         },
                         { l: 'Flash', v: metadata?.Flash, i: <Zap size={18} /> },
                         { l: 'White Balance', v: metadata?.WhiteBalance, i: <Sun size={18} /> },
-                      ].filter(item => {
-                        const val = getTagValue(item.v)
-                        return val && val !== 'Unknown'
-                      })
-
-                      if (items.length === 0) return null
-
-                      return (
-                        <motion.div variants={itemVariants} className="space-y-3">
-                          <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                            Capture Settings
-                          </h3>
-                          <div className="grid grid-cols-2 gap-4">
-                            {items.map((item, idx) => (
-                              <DataGridItem
-                                key={idx}
-                                label={item.l}
-                                value={getTagValue(item.v)}
-                                icon={item.i}
-                              />
-                            ))}
-                          </div>
-                        </motion.div>
-                      )
-                    })()}
+                      ]}
+                    />
 
                     {/* Editorial & Instructions (Grid) */}
-                    {(() => {
-                      const items = [
+                    <MetadataGrid
+                      title="Editorial"
+                      variants={itemVariants}
+                      items={[
                         { l: 'Instructions', v: metadata?.Instructions, i: <FileText size={18} /> },
                         { l: 'Credit', v: metadata?.Credit, i: <User size={18} /> },
                         { l: 'Source', v: metadata?.Source, i: <Globe size={18} /> },
@@ -351,31 +326,8 @@ export const MetadataViewer: React.FC<MetadataViewerProps> = ({
                               : null,
                           i: <Type size={18} />,
                         },
-                      ].filter(item => {
-                        const val = getTagValue(item.v)
-                        return val && val !== 'Unknown'
-                      })
-
-                      if (items.length === 0) return null
-
-                      return (
-                        <motion.div variants={itemVariants} className="space-y-3">
-                          <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                            Editorial
-                          </h3>
-                          <div className="grid grid-cols-2 gap-4">
-                            {items.map((item, idx) => (
-                              <DataGridItem
-                                key={idx}
-                                label={item.l}
-                                value={getTagValue(item.v)}
-                                icon={item.i}
-                              />
-                            ))}
-                          </div>
-                        </motion.div>
-                      )
-                    })()}
+                      ]}
+                    />
                   </div>
 
                   {/* GPS Section */}
