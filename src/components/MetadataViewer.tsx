@@ -28,33 +28,36 @@ import {
   getDescriptionInfo,
 } from '../utils/metadataHelpers'
 import { itemVariants, containerVariants, rawViewVariants } from '../utils/animations'
-import type { ExifMetadata } from '../types/exif'
 import { DataGridItem } from './DataGridItem'
 import { MetadataSection } from './MetadataSection'
 import { MetadataGrid } from './MetadataGrid'
+import { StatCard } from './StatCard'
+import { useStore } from '../store'
 
 interface MetadataViewerProps {
-  metadata: ExifMetadata | null
   gps: GPSData | null
-  viewMode: 'formatted' | 'raw'
-  file: File | null
-  setViewMode: (mode: 'formatted' | 'raw') => void
-  isDetailView: boolean
-  loading: boolean
-  error: string | null
 }
 
-export const MetadataViewer: React.FC<MetadataViewerProps> = ({
-  metadata,
-  gps,
-  viewMode,
-  file,
-  setViewMode,
-  isDetailView,
-  loading,
-  error,
-}) => {
+const downloadJSON = (data: unknown) => {
+  try {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'exif-data.json'
+    a.click()
+    URL.revokeObjectURL(url)
+  } catch (e) {
+    console.error(e)
+    alert('Failed to create JSON download')
+  }
+}
+
+export const MetadataViewer: React.FC<MetadataViewerProps> = ({ gps }) => {
+  const { metadata, viewMode, setViewMode, file, loading, error, isDetailView } = useStore()
+
   if (!metadata && !loading && !error) return null
+
 
   const headline = getHeadline(metadata, file)
   const { camera, lens, subtitle } = getCameraInfo(metadata)
@@ -148,17 +151,7 @@ export const MetadataViewer: React.FC<MetadataViewerProps> = ({
                       className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8"
                     >
                       {stats.map((s, i) => (
-                        <div
-                          key={i}
-                          className="bg-slate-900/40 border border-slate-800/60 p-4 rounded-xl flex flex-col items-center justify-center text-center hover:bg-slate-800/60 hover:border-teal-500/30 transition-all duration-300 backdrop-blur-sm group"
-                        >
-                          <span className="text-2xl md:text-3xl font-bold text-slate-200 group-hover:text-white transition-colors">
-                            {s.v}
-                          </span>
-                          <span className="text-xs uppercase tracking-wider text-slate-500 font-medium mt-1 group-hover:text-teal-400 transition-colors">
-                            {s.l}
-                          </span>
-                        </div>
+                        <StatCard key={i} label={s.l} value={s.v} />
                       ))}
                     </motion.div>
                   )}
@@ -323,23 +316,7 @@ export const MetadataViewer: React.FC<MetadataViewerProps> = ({
                       Raw JSON Output
                     </h3>
                     <button
-                      onClick={() => {
-                        try {
-                          const url = URL.createObjectURL(
-                            new Blob([JSON.stringify(metadata, null, 2)], {
-                              type: 'application/json',
-                            })
-                          )
-                          const a = document.createElement('a')
-                          a.href = url
-                          a.download = 'exif-data.json'
-                          a.click()
-                          URL.revokeObjectURL(url)
-                        } catch (e) {
-                          console.error(e)
-                          alert('Failed to create JSON download')
-                        }
-                      }}
+                      onClick={() => downloadJSON(metadata)}
                       className="text-xs text-teal-400 hover:text-teal-300 font-medium"
                     >
                       Download .json

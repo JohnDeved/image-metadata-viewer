@@ -1,9 +1,12 @@
 import { type Variants } from 'framer-motion'
 
+// Common spring transition config
+const springTransition = { type: 'spring' as const, stiffness: 300, damping: 24 }
+
 // Shared animation variants for metadata items
 export const itemVariants: Variants = {
   hidden: { opacity: 0, y: 10 },
-  visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 24 } },
+  visible: { opacity: 1, y: 0, transition: springTransition },
 }
 
 export const containerVariants: Variants = {

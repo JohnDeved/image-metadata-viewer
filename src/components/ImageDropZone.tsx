@@ -2,18 +2,13 @@ import React from 'react'
 import { motion } from 'framer-motion'
 import { Upload, Trash2 } from 'lucide-react'
 import { getHeadline } from '../utils/metadata'
-import type { ExifMetadata } from '../types/exif'
+import { useStore } from '../store'
 
 interface ImageDropZoneProps {
-  file: File | null
-  previewUrl: string | null
   onFileSelect: (e: React.ChangeEvent<HTMLInputElement>) => void
   onDrop: (e: React.DragEvent<HTMLDivElement>) => void
   onClear: () => void
-  imageLoaded: boolean
   onImageLoad: () => void
-  isDetailView: boolean
-  metadata: ExifMetadata | null
 }
 
 // Motion configuration constants
@@ -25,16 +20,14 @@ const IMAGE_ANIMATION = {
 } as const
 
 export const ImageDropZone: React.FC<ImageDropZoneProps> = ({
-  file,
-  previewUrl,
   onFileSelect,
   onDrop,
   onClear,
   onImageLoad,
-  isDetailView,
-  metadata,
 }) => {
+  const { file, previewUrl, isDetailView, metadata } = useStore()
   const headline = getHeadline(metadata, file)
+
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault()

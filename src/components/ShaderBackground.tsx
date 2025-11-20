@@ -1,17 +1,15 @@
 import React, { useEffect, useRef, memo } from 'react'
+import { useStore } from '../store'
 
-interface ShaderBackgroundProps {
-  isDetailView?: boolean
-}
-
-export const ShaderBackground: React.FC<ShaderBackgroundProps> = memo(
-  ({ isDetailView = false }) => {
-    const canvasRef = useRef<HTMLCanvasElement>(null)
+export const ShaderBackground: React.FC = memo(() => {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const isDetailView = useStore((state) => state.isDetailView)
   const isDetailViewRef = useRef(isDetailView)
 
   useEffect(() => {
     isDetailViewRef.current = isDetailView
   }, [isDetailView])
+
 
     useEffect(() => {
       const c = canvasRef.current
@@ -241,5 +239,5 @@ export const ShaderBackground: React.FC<ShaderBackgroundProps> = memo(
         className="fixed top-16 left-0 right-0 bottom-0 w-full h-full pointer-events-none z-0"
       />
     )
-  }
-)
+  })
+

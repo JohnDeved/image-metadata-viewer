@@ -1,70 +1,15 @@
-import React, { useState, useCallback, type DragEvent, type ChangeEvent } from 'react'
-import ExifReader from 'exifreader'
-import type { ExifMetadata } from './types/exif'
+import React, { useCallback, type DragEvent, type ChangeEvent } from 'react'
+import { useStore } from './store'
 import { getGPSData } from './utils/metadata'
 import { Header } from './components/Header'
 import { ImageDropZone } from './components/ImageDropZone'
 import { MetadataViewer } from './components/MetadataViewer'
 import { ShaderBackground } from './components/ShaderBackground'
 
-interface AppState {
-  file: File | null
-  previewUrl: string | null
-  metadata: ExifMetadata | null
-  loading: boolean
-  error: string | null
-  viewMode: 'formatted' | 'raw'
-  isDetailView: boolean
-  imageLoaded: boolean
-}
-
-const initialState: AppState = {
-  file: null,
-  previewUrl: null,
-  metadata: null,
-  loading: false,
-  error: null,
-  viewMode: 'formatted',
-  isDetailView: false,
-  imageLoaded: false,
-}
+const getErrorMessage = (err: unknown) => err instanceof Error ? err.message : String(err)
 
 export default function App(): React.JSX.Element {
-  const [state, setState] = useState<AppState>(initialState)
-
-  const processFile = useCallback(async (fileToProcess: File) => {
-    if (!fileToProcess.type.startsWith('image/')) {
-      setState(prev => ({ ...prev, error: 'Please select a valid image file (JPEG, PNG, TIFF).' }))
-      return
-    }
-
-    setState(prev => ({
-      ...prev,
-      loading: true,
-      error: null,
-      metadata: null,
-      file: fileToProcess,
-      imageLoaded: false,
-      previewUrl: URL.createObjectURL(fileToProcess),
-    }))
-
-    try {
-      const tags = await ExifReader.load(fileToProcess)
-      setState(prev => ({
-        ...prev,
-        loading: false,
-        metadata: tags,
-        error: !tags || Object.keys(tags).length === 0 ? 'No EXIF metadata found.' : null,
-      }))
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : String(err)
-      setState(prev => ({
-        ...prev,
-        loading: false,
-        error: `Failed to load EXIF data: ${message}`,
-      }))
-    }
-  }, [])
+  const { processFile, resetState, setImageLoaded, setIsDetailView, setError, isDetailView } = useStore()
 
   const loadTestImage = useCallback(() => {
     console.log('Loading test image via button/shortcut...')
@@ -79,9 +24,9 @@ export default function App(): React.JSX.Element {
       })
       .catch(err => {
         console.error('Error loading test image:', err)
-        setState(prev => ({ ...prev, error: `Failed to load test image: ${err.message}` }))
+        setError(`Failed to load test image: ${getErrorMessage(err)}`)
       })
-  }, [processFile])
+  }, [processFile, setError])
 
   const handleDrop = useCallback(
     (e: DragEvent<HTMLDivElement>) => {
@@ -92,51 +37,36 @@ export default function App(): React.JSX.Element {
     [processFile]
   )
 
-  const clearData = () => {
-    if (state.previewUrl) URL.revokeObjectURL(state.previewUrl)
-    setState(initialState)
-  }
+  const handleFileSelect = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      if (e.target.files?.[0]) processFile(e.target.files[0])
+    },
+    [processFile]
+  )
 
-  const handleImageLoad = () => {
-    setState(prev => ({ ...prev, imageLoaded: true }))
-    setTimeout(() => setState(prev => ({ ...prev, isDetailView: true })), 400)
-  }
+  const handleImageLoad = useCallback(() => {
+    setImageLoaded(true)
+    setTimeout(() => setIsDetailView(true), 400)
+  }, [setImageLoaded, setIsDetailView])
+
+  const mainClassName = `mx-auto px-4 py-8 transition-all duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] ${isDetailView ? 'max-w-7xl' : 'max-w-2xl'}`
+  const contentClassName = `transform transition-transform duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] ${isDetailView ? 'translate-y-0' : 'translate-y-[15vh]'}`
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-teal-500/30 overflow-x-hidden relative">
-      <ShaderBackground isDetailView={state.isDetailView} />
+      <ShaderBackground />
       <div className="relative z-10">
         <Header onLoadTestImage={loadTestImage} />
-        <main
-          className={`mx-auto px-4 py-8 transition-all duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] ${state.isDetailView ? 'max-w-7xl' : 'max-w-2xl'}`}
-        >
-          <div
-            className={`transform transition-transform duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] ${state.isDetailView ? 'translate-y-0' : 'translate-y-[15vh]'}`}
-          >
+        <main className={mainClassName}>
+          <div className={contentClassName}>
             <div className="flex flex-col lg:flex-row items-start">
               <ImageDropZone
-                file={state.file}
-                previewUrl={state.previewUrl}
-                imageLoaded={state.imageLoaded}
-                isDetailView={state.isDetailView}
-                metadata={state.metadata}
-                onFileSelect={(e: ChangeEvent<HTMLInputElement>) =>
-                  e.target.files?.[0] && processFile(e.target.files[0])
-                }
+                onFileSelect={handleFileSelect}
                 onDrop={handleDrop}
-                onClear={clearData}
+                onClear={resetState}
                 onImageLoad={handleImageLoad}
               />
-              <MetadataViewer
-                metadata={state.metadata}
-                gps={getGPSData(state.metadata)}
-                viewMode={state.viewMode}
-                file={state.file}
-                loading={state.loading}
-                error={state.error}
-                isDetailView={state.isDetailView}
-                setViewMode={(mode) => setState(prev => ({ ...prev, viewMode: mode }))}
-              />
+              <MetadataViewer gps={getGPSData(useStore.getState().metadata)} />
             </div>
           </div>
         </main>

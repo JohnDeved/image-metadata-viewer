@@ -5,23 +5,19 @@ import { getTagValue, formatDate } from './metadata'
 export const calculateCameraStats = (metadata: ExifMetadata | null) => {
   if (!metadata) return []
 
-  return [
-    {
-      l: 'Aperture',
-      v: getTagValue(metadata.FNumber) ? `f/${getTagValue(metadata.FNumber)}` : null,
-    },
-    {
-      l: 'Shutter',
-      v: getTagValue(metadata.ExposureTime) ? `${getTagValue(metadata.ExposureTime)}s` : null,
-    },
-    {
-      l: 'ISO',
-      v: getTagValue(metadata.ISOSpeedRatings)
-        ? `ISO ${getTagValue(metadata.ISOSpeedRatings)}`
-        : null,
-    },
-    { l: 'Focal Length', v: getTagValue(metadata.FocalLength) },
-  ].filter(s => s.v)
+  const stats = [
+    { l: 'Aperture', v: metadata.FNumber, format: (v: string) => `f/${v}` },
+    { l: 'Shutter', v: metadata.ExposureTime, format: (v: string) => `${v}s` },
+    { l: 'ISO', v: metadata.ISOSpeedRatings, format: (v: string) => `ISO ${v}` },
+    { l: 'Focal Length', v: metadata.FocalLength, format: (v: string) => v },
+  ]
+
+  return stats
+    .map(({ l, v, format }) => {
+      const value = getTagValue(v)
+      return value ? { l, v: format(value) } : null
+    })
+    .filter((s): s is { l: string; v: string } => s !== null)
 }
 
 // Build camera and lens display strings
@@ -73,11 +69,10 @@ export const getDescriptionInfo = (metadata: ExifMetadata | null) => {
   const desc = getTagValue(metadata?.ImageDescription) || getTagValue(metadata?.description)
   const copyright = getTagValue(metadata?.Copyright)
   const artist = getTagValue(metadata?.Artist)
-  const hasDesc = desc && desc.trim().length > 0 && desc.trim() !== '""'
 
   return {
-    hasContent: hasDesc || !!copyright || !!artist,
-    description: hasDesc ? desc : null,
+    hasContent: !!desc || !!copyright || !!artist,
+    description: desc,
     copyright,
     artist,
   }
